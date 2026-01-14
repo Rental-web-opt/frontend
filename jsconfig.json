@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    
+    // CORRECTION POUR LE "moduleResolution"
+    "moduleResolution": "NodeNext",
+    
+    // CORRECTION POUR L'ERREUR "module"
+    "module": "NodeNext",
+    
+    // CORRECTION POUR L'ERREUR "baseUrl" (on ignore l'avertissement)
+    "ignoreDeprecations": "6.0" 
+  },
+  "include": ["**/*.js", "**/*.jsx"]
+}
