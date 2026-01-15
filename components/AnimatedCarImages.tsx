@@ -21,11 +21,9 @@ export default function AnimatedCarImage() {
     <img
       src={carImages[current]}
       alt="Car"
+      className="w-full h-full object-contain drop-shadow-2xl -translate-x-12 translate-y-6 md:translate-y-0"
       style={{
-        width: '600px',
-        maxWidth: '90vw',
-        height: 'auto',
-        borderRadius: '1.5rem'
+        maxHeight: '700px', // Limite la hauteur pour rester dans la zone bleue
       }}
     />
   );

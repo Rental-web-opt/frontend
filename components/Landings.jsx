@@ -31,7 +31,7 @@ export default function Landings() {
             <div className="space-y-8 text-center lg:text-left">
               <h2 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight">
                 Louez la voiture <br />
-                <span className="text-orange-400">de vos rêves.</span>
+                <span className="text-white">de vos rêves.</span>
               </h2>
               <p className="text-blue-100 text-lg md:text-xl leading-relaxed font-light max-w-lg mx-auto lg:mx-0">
                 Accédez à une large gamme de véhicules pour toutes les occasions.
@@ -66,7 +66,7 @@ export default function Landings() {
 
             {/* Right Content - Car Image */}
             <div className="relative flex justify-center lg:justify-end">
-              <div className="relative z-20 w-full max-w-xl transform hover:scale-105 transition-transform duration-700">
+              <div className="relative z-20 w-full max-w-3xl transform hover:scale-105 transition-transform duration-700">
                 <AnimatedCarImage />
               </div>
             </div>

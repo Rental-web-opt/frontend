@@ -40,7 +40,7 @@ export default function HomePage() {
             <span className="text-blue-600 font-bold tracking-wider text-sm uppercase bg-blue-100 px-3 py-1 rounded-full border border-blue-200">
               Rejoignez-nous
             </span>
-            <h2 className="text-3xl md:text-5xl font-bold text-slate-800 mt-4 mb-4">Espace Partenaires</h2>
+            <h2 className="text-3xl md:text-5xl font-bold text-blue-800 mt-4 mb-4">Espace Partenaires</h2>
             <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">
               Vous avez un véhicule ou vous êtes chauffeur ? Connectez-vous, créez votre profil et commencez à générer des revenus dès aujourd'hui.
             </p>
@@ -59,7 +59,7 @@ export default function HomePage() {
               <p className="text-slate-500 mb-8 leading-relaxed">
                 Rejoignez notre flotte de chauffeurs professionnels. Gérez vos courses, vos disponibilités et encaissez vos gains facilement.
               </p>
-              <button className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2 text-lg">
+              <button className="w-full py-4 bg-[#002AD7] text-white rounded-xl font-bold hover:bg-blue-800 transition flex items-center justify-center gap-2 text-lg">
                 Commencer <ArrowRight size={20} />
               </button>
             </div>
@@ -76,7 +76,7 @@ export default function HomePage() {
               <p className="text-slate-500 mb-8 leading-relaxed">
                 Digitalisez votre agence de location. Gérez votre flotte, suivez vos réservations et augmentez votre visibilité.
               </p>
-              <button className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2 text-lg">
+              <button className="w-full py-4 bg-[#F76513] text-white rounded-xl font-bold hover:bg-orange-700 transition flex items-center justify-center gap-2 text-lg">
                 Inscrire ma flotte <ArrowRight size={20} />
               </button>
             </div>

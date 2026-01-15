@@ -34,12 +34,12 @@ export default function StatsSection() {
 
             {/* ----- COLONNE DE GAUCHE (Titre + Image) ----- */}
             <div className="text-center lg:text-left">
-              <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-600 text-xs font-bold mb-4 border border-blue-200">
+              <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-[#002AD7] text-xs font-bold mb-4 border border-blue-200">
                 NOS RÉSULTATS
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold text-slate-800 mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold text-black mb-6">
                 La performance <br />
-                <span className="text-blue-600">au service de votre mobilité</span>
+                <span className="text-[#002AD7]">au service de votre mobilité</span>
               </h2>
               <p className="text-slate-500 text-lg mb-10 max-w-lg mx-auto lg:mx-0">
                 Nous connectons des milliers d'utilisateurs aux meilleures agences du pays avec une efficacité record.

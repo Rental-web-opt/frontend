@@ -38,8 +38,8 @@ export default function OurServices() {
   return (
     <section className="py-16 w-full max-w-[1440px] mx-auto px-6">
       <div className="text-center mb-20">
-        <span className="text-orange-500 font-bold tracking-wider text-sm uppercase">Nos Services</span>
-        <h2 className="text-4xl md:text-5xl font-bold text-slate-800 mt-2">
+        <span className="text-[#F76513] font-bold tracking-wider text-sm uppercase">Nos Services</span>
+        <h2 className="text-4xl md:text-5xl font-bold text-blue-800 mt-2">
           Tout ce dont vous avez besoin
         </h2>
         <p className="text-slate-500 mt-4 max-w-2xl mx-auto text-lg">
@@ -66,12 +66,12 @@ export default function OurServices() {
                 />
               </div>
               <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-sm">
-                <service.icon className={`w-6 h-6 ${service.color === 'orange' ? 'text-orange-500' : 'text-blue-600'}`} />
+                <service.icon className={`w-6 h-6 ${service.color === 'orange' ? 'text-[#F76513]' : 'text-[#002AD7]'}`} />
               </div>
             </div>
 
             <div className="px-4 pb-4 flex-1 flex flex-col">
-              <h3 className="text-2xl font-bold text-slate-800 mb-3 group-hover:text-blue-600 transition-colors">
+              <h3 className="text-2xl font-bold text-black mb-3 group-hover:text-[#002AD7] transition-colors">
                 {service.title}
               </h3>
               <p className="text-slate-500 leading-relaxed mb-6 flex-1">
@@ -80,7 +80,7 @@ export default function OurServices() {
 
               {/* Le Lien est ici */}
               <Link href={service.link}>
-                <button className={`flex items-center gap-2 font-bold transition-all ${service.color === 'orange' ? 'text-orange-500 hover:text-orange-600' : 'text-blue-600 hover:text-blue-700'}`}>
+                <button className={`flex items-center gap-2 font-bold transition-all ${service.color === 'orange' ? 'text-[#F76513] hover:text-orange-700' : 'text-[#002AD7] hover:text-blue-800'}`}>
                   Voir les avis & profils <ArrowRight size={18} />
                 </button>
               </Link>
