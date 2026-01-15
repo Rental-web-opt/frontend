@@ -378,13 +378,12 @@ const ReviewsPublics = () => {
   );
 };
 
-// --- COMPOSANT PRINCIPAL ---
-
-export default function ReviewsPage() {
+// --- COMPOSANT PRINCIPAL (Refactorisé en Section) ---
+export default function Testimonials() {
   const [activeTab, setActiveTab] = useState("particuliers");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-orange-50/30">
+    <section className="py-24 bg-gradient-to-br from-white via-blue-50/30 to-orange-50/30">
       <style jsx global>{`
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(30px); }
@@ -399,33 +398,22 @@ export default function ReviewsPage() {
         }
       `}</style>
 
-      {/* Header moderne avec effet glassmorphism */}
-      <header className="bg-white/80 backdrop-blur-lg shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl transform hover:rotate-12 transition-transform duration-300">
-                <Car className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-black text-blue-600">
-                  Easy-Rent Reviews
-                </h1>
-                <p className="text-gray-600 text-sm font-medium">Votre avis compte pour nous</p>
-              </div>
-            </div>
-
-            {/* Badge de confiance */}
-            <div className="hidden md:flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full border-2 border-green-200">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="text-green-800 font-bold text-sm">Avis Vérifiés</span>
-            </div>
-          </div>
+      {/* Header de Section (Remplace le Header de Page) */}
+      <div className="container mx-auto px-6 mb-16 text-center">
+        <div className="inline-flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full border border-green-200 mb-6">
+          <CheckCircle className="w-4 h-4 text-green-600" />
+          <span className="text-green-800 font-bold text-xs uppercase tracking-wider">Avis Vérifiés</span>
         </div>
-      </header>
+        <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-4">
+          Ce qu'ils disent <span className="text-blue-600">de nous</span>
+        </h2>
+        <p className="text-slate-500 text-lg max-w-2xl mx-auto">
+          Découvrez les retours d'expérience de notre communauté grandissante de particuliers et de professionnels.
+        </p>
+      </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-12">
+      <div className="container mx-auto px-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Tabs avec effet moderne */}
           <TabsList className="grid w-full max-w-lg mx-auto grid-cols-2 mb-16">
@@ -465,7 +453,7 @@ export default function ReviewsPage() {
             </TabsContent>
           )}
         </Tabs>
-      </main>
-    </div>
+      </div>
+    </section>
   );
 }

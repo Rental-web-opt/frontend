@@ -9,7 +9,7 @@ import { allAgencies } from "@/modules/agenciesData"; // On utilise la vraie bas
 
 export default function QualityAgencies() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  
+
   // On affiche 3 cartes sur desktop, donc on limite l'index max
   const maxIndex = allAgencies.length > 0 ? allAgencies.length - 1 : 0;
 
@@ -21,9 +21,9 @@ export default function QualityAgencies() {
   }, [maxIndex]);
 
   return (
-    <section className="py-20 relative overflow-hidden">
+    <section className="py-16 relative overflow-hidden bg-slate-50/50">
       {/* Titre Section */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-16 px-6">
         <span className="text-blue-600 font-bold tracking-wider text-sm uppercase bg-blue-50 px-3 py-1 rounded-full">
           Partenaires
         </span>
@@ -37,7 +37,7 @@ export default function QualityAgencies() {
 
       {/* Carrousel */}
       <div className="max-w-[1440px] mx-auto overflow-hidden px-4">
-        <motion.div 
+        <motion.div
           className="flex gap-6"
           animate={{ x: `-${currentIndex * 350}px` }} // Ajustement du scroll (largeur carte + gap)
           transition={{ duration: 0.5, ease: "easeInOut" }}
@@ -45,20 +45,20 @@ export default function QualityAgencies() {
           {allAgencies.map((agency) => (
             <div key={agency.id} className="min-w-[320px] md:min-w-[380px] p-2">
               <div className="bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-100 group h-full flex flex-col">
-                
+
                 {/* Header Carte */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="relative w-16 h-16 rounded-2xl overflow-hidden border border-slate-100 shadow-sm bg-slate-50 flex items-center justify-center">
                     {agency.logo ? (
-                        <Image 
-                        src={agency.logo} 
-                        alt={agency.name} 
-                        width={64} 
-                        height={64} 
+                      <Image
+                        src={agency.logo}
+                        alt={agency.name}
+                        width={64}
+                        height={64}
                         className="object-cover"
-                        />
+                      />
                     ) : (
-                        <Building2 className="text-slate-300" />
+                      <Building2 className="text-slate-300" />
                     )}
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${agency.isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -87,7 +87,7 @@ export default function QualityAgencies() {
                       {agency.rating}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center text-slate-600 gap-2 text-sm">
                     <Clock size={16} className="text-orange-500" />
                     {agency.openingHours}
@@ -96,9 +96,9 @@ export default function QualityAgencies() {
 
                 {/* Bouton Voir - LIEN DYNAMIQUE AJOUTÉ */}
                 <Link href={`/Agencies/${agency.id}`}>
-                    <button className="w-full mt-6 py-3 rounded-xl bg-slate-50 text-blue-600 font-bold text-sm hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2 group-hover:shadow-md">
+                  <button className="w-full mt-6 py-3 rounded-xl bg-slate-50 text-blue-600 font-bold text-sm hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2 group-hover:shadow-md">
                     Visiter l'agence <ArrowRight size={16} />
-                    </button>
+                  </button>
                 </Link>
               </div>
             </div>

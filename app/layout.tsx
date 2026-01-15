@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 // @ts-ignore: allow importing global CSS without type declaration
 import './globals.css';
 import Footer from '@/components/Footer';
-import Landings from '@/components/Landings';
 import Navbar from '@/components/Navbar';
 import { AuthProvider } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext'; // <-- AJOUT
@@ -32,7 +31,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AuthProvider>
           <NotificationProvider> {/* <-- AJOUT DU PROVIDER */}
             <Navbar /> {/* <-- NAVBAR AJOUTÉE */}
-            <Landings />  {/* <-- HERO SEULEMENT */}
             <main className="flex-1">
               {children}
             </main>

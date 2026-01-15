@@ -34,10 +34,15 @@ export default function Navbar() {
 
                 {/* Liens de Navigation */}
                 <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-                    <button onClick={() => protect('/')} className="hover:text-blue-600 transition-colors">Home</button>
-                    <button onClick={() => protect('/CarsPage')} className="hover:text-blue-600 transition-colors">Cars</button>
-                    <button onClick={() => protect('/Agencies')} className="hover:text-blue-600 transition-colors">Agencies</button>
-                    <button onClick={() => protect('/Help')} className="hover:text-blue-600 transition-colors">Help</button>
+                    <button
+                        onClick={() => protect('/')}
+                        className={`transition-colors ${pathname === '/' ? 'text-blue-600 font-bold' : 'hover:text-blue-600'}`}
+                    >
+                        Home
+                    </button>
+                    <button onClick={() => protect('/CarsPage')} className={pathname === '/CarsPage' ? 'text-blue-600 font-bold' : 'hover:text-blue-600 transition-colors'}>Cars</button>
+                    <button onClick={() => protect('/Agencies')} className={pathname === '/Agencies' ? 'text-blue-600 font-bold' : 'hover:text-blue-600 transition-colors'}>Agencies</button>
+                    <button onClick={() => protect('/Help')} className={pathname === '/Help' ? 'text-blue-600 font-bold' : 'hover:text-blue-600 transition-colors'}>Help</button>
                 </nav>
 
                 {/* Icônes d'Action */}

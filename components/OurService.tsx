@@ -10,7 +10,7 @@ export default function OurServices() {
       id: 1,
       title: "Réservation de Véhicule",
       description: "Réservez tout type de véhicule en un clic : voitures, motos, et plus encore.",
-      image: "/assets/vehicule1.png", 
+      image: "/assets/vehicule1.png",
       icon: Car,
       color: "blue",
       link: "/Reviews/vehicles" // Lien vers les avis véhicules
@@ -36,14 +36,14 @@ export default function OurServices() {
   ];
 
   return (
-    <section className="py-20 w-full">
-      <div className="text-center mb-16">
+    <section className="py-16 w-full max-w-[1440px] mx-auto px-6">
+      <div className="text-center mb-20">
         <span className="text-orange-500 font-bold tracking-wider text-sm uppercase">Nos Services</span>
         <h2 className="text-4xl md:text-5xl font-bold text-slate-800 mt-2">
           Tout ce dont vous avez besoin
         </h2>
         <p className="text-slate-500 mt-4 max-w-2xl mx-auto text-lg">
-          Une suite complète de services pour faciliter vos déplacements. 
+          Une suite complète de services pour faciliter vos déplacements.
           Consultez les avis de la communauté pour chaque catégorie.
         </p>
       </div>
@@ -57,7 +57,7 @@ export default function OurServices() {
             {/* ... (Partie Image inchangée) ... */}
             <div className={`relative h-64 w-full rounded-2xl overflow-hidden mb-6 ${service.color === 'orange' ? 'bg-orange-50' : 'bg-blue-50'}`}>
               <div className="absolute inset-0 flex items-center justify-center p-6 group-hover:scale-105 transition-transform duration-500">
-                 <Image
+                <Image
                   src={service.image}
                   alt={service.title}
                   width={400}
@@ -77,12 +77,12 @@ export default function OurServices() {
               <p className="text-slate-500 leading-relaxed mb-6 flex-1">
                 {service.description}
               </p>
-              
+
               {/* Le Lien est ici */}
               <Link href={service.link}>
-                  <button className={`flex items-center gap-2 font-bold transition-all ${service.color === 'orange' ? 'text-orange-500 hover:text-orange-600' : 'text-blue-600 hover:text-blue-700'}`}>
-                    Voir les avis & profils <ArrowRight size={18} />
-                  </button>
+                <button className={`flex items-center gap-2 font-bold transition-all ${service.color === 'orange' ? 'text-orange-500 hover:text-orange-600' : 'text-blue-600 hover:text-blue-700'}`}>
+                  Voir les avis & profils <ArrowRight size={18} />
+                </button>
               </Link>
             </div>
           </div>

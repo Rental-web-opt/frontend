@@ -12,11 +12,11 @@ const HomeCarCard = ({ data }: { data: any }) => (
   <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-slate-100 flex-shrink-0 w-[300px] md:w-[340px]">
     {/* Image */}
     <div className="relative h-48 bg-gray-100 overflow-hidden">
-      <Image 
-        src={data.image} 
-        alt={data.name} 
-        fill 
-        className="object-cover group-hover:scale-110 transition-transform duration-700" 
+      <Image
+        src={data.image}
+        alt={data.name}
+        fill
+        className="object-cover group-hover:scale-110 transition-transform duration-700"
       />
       <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-bold shadow-sm">
         <Star size={12} className="text-yellow-400 fill-yellow-400" />
@@ -74,7 +74,7 @@ export default function FeaturedVehicles() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Utilisation de toutes les voitures ou une sélection
-  const displayCars = allCars; 
+  const displayCars = allCars;
   // Limite pour le carrousel (on boucle quand on arrive à la fin)
   const maxIndex = displayCars.length > 0 ? displayCars.length - 1 : 0;
 
@@ -87,8 +87,8 @@ export default function FeaturedVehicles() {
   }, [maxIndex]);
 
   return (
-    <div className="flex flex-col gap-24 py-20">
-      
+    <div className="flex flex-col gap-16 py-16">
+
       {/* === SECTION CARROUSEL VÉHICULES === */}
       <section className="w-full overflow-hidden">
         <div className="text-center mb-12">
@@ -98,11 +98,11 @@ export default function FeaturedVehicles() {
 
         {/* Container du Carrousel */}
         <div className="max-w-[1440px] mx-auto px-4">
-          <motion.div 
+          <motion.div
             className="flex gap-6"
             // Calcul du décalage : Largeur Carte (340px sur desktop) + Gap (24px = 6 * 4)
             // On ajuste approximativement à 364px par item pour le scroll
-            animate={{ x: `-${currentIndex * 364}px` }} 
+            animate={{ x: `-${currentIndex * 364}px` }}
             transition={{ duration: 0.7, ease: "easeInOut" }}
           >
             {displayCars.map((v) => (
@@ -121,22 +121,24 @@ export default function FeaturedVehicles() {
       </section>
 
       {/* === SECTION WHY CHOOSE US === */}
-      <section className="bg-white rounded-[3rem] p-8 md:p-16 shadow-xl border border-slate-100 w-full">
-        <div className="w-full">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-slate-800 mb-6">Pourquoi nous choisir ?</h2>
-            <p className="text-lg text-slate-500">
-              Nous vous offrons une expérience de mobilité sans tracas, sécurisée et premium.
-            </p>
-          </div>
+      <section className="w-full max-w-[1440px] mx-auto px-6">
+        <div className="bg-white rounded-[2.5rem] p-8 md:p-16 shadow-xl border border-slate-100">
+          <div className="w-full">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <h2 className="text-3xl md:text-5xl font-bold text-slate-800 mb-6">Pourquoi nous choisir ?</h2>
+              <p className="text-lg text-slate-500">
+                Nous vous offrons une expérience de mobilité sans tracas, sécurisée et premium.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureItem icon={Clock} title="Rapide & Facile" desc="Réservez votre véhicule en moins de 2 minutes." color="bg-blue-600" />
-            <FeatureItem icon={ShieldCheck} title="Sécurité Garantie" desc="Tous nos véhicules sont inspectés régulièrement." color="bg-orange-500" />
-            <FeatureItem icon={User} title="Chauffeurs Pros" desc="Nos experts de la route vous conduisent en toute sérénité." color="bg-indigo-600" />
-            <FeatureItem icon={Wallet} title="Prix Transparents" desc="Le prix affiché est le prix que vous payez." color="bg-emerald-500" />
-            <FeatureItem icon={Headphones} title="Support 24/7" desc="Une équipe dédiée est à votre écoute à tout moment." color="bg-pink-500" />
-            <FeatureItem icon={Star} title="Qualité Premium" desc="Nous sélectionnons uniquement les véhicules offrant le meilleur confort." color="bg-violet-600" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <FeatureItem icon={Clock} title="Rapide & Facile" desc="Réservez votre véhicule en moins de 2 minutes." color="bg-blue-600" />
+              <FeatureItem icon={ShieldCheck} title="Sécurité Garantie" desc="Tous nos véhicules sont inspectés régulièrement." color="bg-orange-500" />
+              <FeatureItem icon={User} title="Chauffeurs Pros" desc="Nos experts de la route vous conduisent en toute sérénité." color="bg-indigo-600" />
+              <FeatureItem icon={Wallet} title="Prix Transparents" desc="Le prix affiché est le prix que vous payez." color="bg-emerald-500" />
+              <FeatureItem icon={Headphones} title="Support 24/7" desc="Une équipe dédiée est à votre écoute à tout moment." color="bg-pink-500" />
+              <FeatureItem icon={Star} title="Qualité Premium" desc="Nous sélectionnons uniquement les véhicules offrant le meilleur confort." color="bg-violet-600" />
+            </div>
           </div>
         </div>
       </section>
