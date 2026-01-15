@@ -1,73 +1,21 @@
 "use client";
 
 import { usePathname } from 'next/navigation';
-import Image from 'next/image';
-// Note: On n'utilise plus 'Link' directement pour forcer la vérification
-import { Search, Heart, Settings, Car } from 'lucide-react'; 
 import AnimatedCarImage from './AnimatedCarImages';
-import { useAuth } from '@/context/AuthContext'; // <-- Import du Gardien
+import { useAuth } from '@/context/AuthContext';
+import SearchBar from './SearchBar';
 
 export default function Landings() {
   const pathname = usePathname();
-  const { protect } = useAuth(); // <-- On récupère la fonction de protection
+  const { protect } = useAuth();
 
-  // Logique pour cacher le composant sur certaines pages
-  if (pathname === '/CarsPage' || pathname === '/Agencies' || pathname === '/Profil' || pathname === '/Help' || pathname.startsWith('/CarsPage/') || pathname.startsWith('/Agencies/') || pathname === '/Plans' || pathname.startsWith('/Reviews') || pathname.startsWith('/Drivers') || pathname.startsWith('/Login')|| pathname.startsWith('/Register') || pathname.startsWith('/Dashboard') ) {
+  // Affiche UNIQUEMENT sur la page d'accueil
+  if (pathname !== '/') {
     return null;
   }
 
   return (
     <div className="bg-slate-50">
-
-      {/* ======================================= */}
-      {/* === NAVBAR UNIFIÉE (PROTÉGÉE) === */}
-      {/* ======================================= */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 px-6 md:px-12 py-4">
-        <div className="flex items-center justify-between max-w-[1440px] mx-auto">
-
-          {/* Logo (Protégé aussi) */}
-          <button 
-            onClick={() => protect('/')} 
-            className="text-2xl font-bold flex items-center gap-1 hover:opacity-80 transition-opacity"
-          >
-            <div className="bg-blue-600 text-white p-1 rounded-lg">
-              <Car size={24} />
-            </div>
-            <span className="text-blue-600">EASY</span>
-            <span className="text-orange-500">-RENT</span>
-          </button>
-
-          {/* Liens de Navigation (Transformés en Boutons Protégés) */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-            <button onClick={() => protect('/')} className="hover:text-blue-600 transition-colors">Home</button>
-            <button onClick={() => protect('/CarsPage')} className="hover:text-blue-600 transition-colors">Cars</button>
-            <button onClick={() => protect('/Agencies')} className="hover:text-blue-600 transition-colors">Agencies</button>
-            <button onClick={() => protect('/Help')} className="hover:text-blue-600 transition-colors">Help</button>
-          </nav>
-
-          {/* Icônes d'Action */}
-          <div className="flex gap-4 items-center pl-4 border-l border-slate-200 ml-4">
-            
-            <button 
-              onClick={() => protect('/Favorites')} // Exemple de route protégée
-              className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
-            >
-              <Heart size={20} />
-            </button>
-            
-            <button 
-              onClick={() => protect('/Profil')} 
-              className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition text-slate-600"
-            >
-              <Settings size={20} />
-            </button>
-            
-            {/* Indicateur visuel (Optionnel) */}
-            <div className="w-9 h-9 bg-gradient-to-tr from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-sm"></div>
-          </div>
-        </div>
-      </header>
-
       {/* ======================================= */}
       {/* === HERO SECTION (PROTÉGÉE) === */}
       {/* ======================================= */}
@@ -90,18 +38,23 @@ export default function Landings() {
                 Disponible immédiatement dans plusieurs agences partenaires.
               </p>
 
+              {/* 🔍 Barre de recherche Elasticsearch */}
+              <div className="pt-4">
+                <SearchBar />
+              </div>
+
               <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                
+
                 {/* Bouton Réserver -> Protégé */}
-                <button 
+                <button
                   onClick={() => protect('/CarsPage')}
                   className="bg-[#F76513] hover:bg-[#e55a0f] text-white font-bold px-8 py-4 rounded-xl transition-all shadow-lg hover:shadow-orange-500/30 hover:-translate-y-1"
                 >
                   Réserver maintenant
                 </button>
-                
+
                 {/* Bouton Agences -> Protégé */}
-                <button 
+                <button
                   onClick={() => protect('/Agencies')}
                   className="bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold px-8 py-4 rounded-xl transition-all hover:bg-white/20"
                 >

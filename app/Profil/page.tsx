@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 import { bookingService } from "@/services/api";
-import { useAuth } from "@/context/AuthContext"; // Import du contexte
+import { useAuth } from "@/context/AuthContext";
+import { useNotification } from "@/context/NotificationContext"; // <-- Import
 import {
     Home, LayoutGrid, Heart, DollarSign, Bell, Settings, LogOut,
     Search, Edit2, ChevronDown, Calendar, Car, Trash2, User,
@@ -203,29 +204,50 @@ const FavoriteView = () => (
     </div>
 );
 
-const NotificationsView = () => (
-    <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 p-8 min-h-[600px]">
-        <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Notifications</h2>
-            <button className="text-sm text-blue-600 dark:text-blue-400 font-semibold hover:underline">Tout marquer comme lu</button>
-        </div>
-        <div className="space-y-4">
-            {mockNotifications.map((notif) => (
-                <div key={notif.id} className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-600 group">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${notif.type === 'success' ? 'bg-green-100 text-green-600' : ''} ${notif.type === 'warning' ? 'bg-orange-100 text-orange-600' : ''} ${notif.type === 'info' ? 'bg-blue-100 text-blue-600' : ''}`}><Bell className="w-6 h-6" /></div>
-                    <div className="flex-1">
-                        <div className="flex justify-between items-start mb-1">
-                            <h3 className="font-bold text-slate-800 dark:text-white group-hover:text-blue-600 transition-colors">{notif.title}</h3>
-                            <span className="text-xs text-slate-400 font-medium">{notif.date}</span>
-                        </div>
-                        <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{notif.content}</p>
+const NotificationsView = () => {
+    const { notifications, markAllAsRead, clearNotification } = useNotification();
+
+    return (
+        <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 p-8 min-h-[600px]">
+            <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Notifications</h2>
+                {notifications.length > 0 && (
+                    <button onClick={markAllAsRead} className="text-sm text-blue-600 dark:text-blue-400 font-semibold hover:underline">
+                        Tout marquer comme lu
+                    </button>
+                )}
+            </div>
+            <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                {notifications.length === 0 ? (
+                    <div className="text-center py-10 text-slate-500 font-medium">
+                        Aucune notification pour le moment.
                     </div>
-                    <button className="text-slate-300 hover:text-red-500 transition p-2 opacity-0 group-hover:opacity-100"><Trash2 className="w-5 h-5" /></button>
-                </div>
-            ))}
+                ) : (
+                    notifications.map((notif) => (
+                        <div key={notif.id} className={`flex items-start gap-4 p-4 rounded-2xl transition-colors border group ${notif.read ? 'bg-white dark:bg-slate-800 border-transparent hover:bg-slate-50' : 'bg-blue-50/40 dark:bg-blue-900/10 border-blue-100 dark:border-blue-800'}`}>
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 
+                                ${notif.type === 'success' ? 'bg-green-100 text-green-600' : ''} 
+                                ${notif.type === 'error' ? 'bg-red-100 text-red-600' : ''} 
+                                ${notif.type === 'booking' ? 'bg-purple-100 text-purple-600' : ''} 
+                                ${notif.type === 'info' ? 'bg-blue-100 text-blue-600' : ''}
+                            `}>
+                                <Bell className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex justify-between items-start mb-1">
+                                    <h3 className="font-bold text-slate-800 dark:text-white group-hover:text-blue-600 transition-colors capitalize">{notif.type}</h3>
+                                    <span className="text-xs text-slate-400 font-medium">{notif.timestamp.toLocaleTimeString()}</span>
+                                </div>
+                                <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{notif.message}</p>
+                            </div>
+                            <button onClick={() => clearNotification(notif.id)} className="text-slate-300 hover:text-red-500 transition p-2 opacity-0 group-hover:opacity-100"><Trash2 className="w-5 h-5" /></button>
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 // --- COMPOSANT TRANSACTIONS VIEW CORRIGÉ ---
 const TransactionsView = ({ type }: { type: 'locations' | 'payments' }) => {
@@ -605,6 +627,7 @@ const SettingsView = () => {
 
 export default function ProfilePage() {
     const { user, logout } = useAuth(); // Utilisation du contexte Auth
+    const { unreadCount } = useNotification(); // Utilisation du contexte Notif
     const [activeTab, setActiveTab] = useState<"info" | "home" | "favorite" | "transactions" | "notifications" | "settings">("info");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // État pour le menu mobile
 
@@ -614,7 +637,7 @@ export default function ProfilePage() {
         { id: "plans_link", label: "Mon Abonnement", icon: Crown },
         { id: "favorite", label: "Favoris", icon: Heart },
         { id: "transactions", label: "Transactions", icon: DollarSign },
-        { id: "notifications", label: "Notifications", icon: Bell },
+        { id: "notifications", label: "Notifications", icon: Bell, badge: unreadCount }, // Ajout du badge
     ];
 
     const renderContent = () => {
@@ -700,7 +723,14 @@ export default function ProfilePage() {
                                         onClick={() => handleTabChange(item.id)}
                                         className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === item.id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm border-r-4 border-blue-600 dark:border-blue-400' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'}`}
                                     >
-                                        <item.icon className={`w-5 h-5 ${activeTab === item.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`} /> {item.label}
+                                        <item.icon className={`w-5 h-5 ${activeTab === item.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`} />
+                                        <span className="flex-1 text-left">{item.label}</span>
+                                        {/* BADGE */}
+                                        {item.badge && item.badge > 0 ? (
+                                            <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                                {item.badge}
+                                            </span>
+                                        ) : null}
                                     </button>
                                 )
                             ))}

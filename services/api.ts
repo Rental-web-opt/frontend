@@ -26,12 +26,25 @@ export const agencyService = {
 };
 
 export const bookingService = {
-  create: (data: any) => api.post('/bookings', data), // Pour créer une réservation (Client)
-  getByUser: (userId: number) => api.get(`/bookings/user/${userId}`), // Pour l'historique (Client)
-  
-  // --- AJOUTS POUR LE DASHBOARD AGENCE ---
-  getAll: () => api.get('/bookings'), // Pour voir toutes les demandes
-  updateStatus: (id: number, status: string) => api.put(`/bookings/${id}/status?status=${status}`), // Pour Valider/Refuser
+  create: (data: any) => api.post('/bookings', data),
+  getByUser: (userId: number) => api.get(`/bookings/user/${userId}`),
+  getAll: () => api.get('/bookings'),
+  updateStatus: (id: number, status: string) => api.put(`/bookings/${id}/status?status=${status}`),
+};
+
+// --- SERVICE DE RECHERCHE ELASTICSEARCH ---
+export const searchService = {
+  // Recherche par nom/marque
+  searchCars: (query: string) => api.get(`/search/cars?query=${encodeURIComponent(query)}`),
+
+  // Recherche par type (SUV, Berline, etc.)
+  searchByType: (type: string) => api.get(`/search/cars/type/${type}`),
+
+  // Voitures disponibles
+  getAvailable: () => api.get('/search/cars/available'),
+
+  // Recherche par gamme de prix
+  searchByPrice: (min: number, max: number) => api.get(`/search/cars/price?min=${min}&max=${max}`),
 };
 
 export default api;
