@@ -95,7 +95,7 @@ const ReviewCard = ({ review, type, index }: ReviewCardProps) => {
   const bgGradient = type === "particuliers"
     ? "bg-gradient-to-br from-blue-50 via-white to-blue-50"
     : "bg-gradient-to-br from-orange-50 via-white to-orange-50";
-  const accentColor = type === "particuliers" ? "text-blue-600" : "text-orange-600";
+  const accentColor = type === "particuliers" ? "text-[#002AD7]" : "text-[#F76513]";
   const borderColor = type === "particuliers" ? "border-blue-200" : "border-orange-200";
   const badgeColor = type === "particuliers" ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700";
 
@@ -111,7 +111,7 @@ const ReviewCard = ({ review, type, index }: ReviewCardProps) => {
       {/* En-tête de la carte */}
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-4">
-          <div className={`w-16 h-16 ${type === "particuliers" ? "bg-gradient-to-br from-blue-500 to-blue-700" : "bg-gradient-to-br from-orange-500 to-orange-700"} rounded-2xl flex items-center justify-center shadow-lg transform transition-transform hover:rotate-12`}>
+          <div className={`w-16 h-16 ${type === "particuliers" ? "bg-[#002AD7]" : "bg-[#F76513]"} rounded-2xl flex items-center justify-center shadow-lg transform transition-transform hover:rotate-12`}>
             {type === "particuliers" ? (
               <User className="w-8 h-8 text-white" />
             ) : (
@@ -244,11 +244,11 @@ const ReviewsParticuliers = () => {
     <div>
       <div className="text-center mb-12 animate-fadeIn">
         <div className="inline-block mb-4">
-          <span className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+          <span className="bg-[#002AD7] text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
             ⭐ Avis Vérifiés
           </span>
         </div>
-        <h2 className="text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-4">
+        <h2 className="text-5xl font-extrabold text-[#002AD7] mb-4">
           Nos Clients Particuliers
         </h2>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -336,11 +336,11 @@ const ReviewsPublics = () => {
     <div>
       <div className="text-center mb-12 animate-fadeIn">
         <div className="inline-block mb-4">
-          <span className="bg-gradient-to-r from-orange-600 to-orange-800 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+          <span className="bg-[#F76513] text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
             🏢 Partenaires Pro
           </span>
         </div>
-        <h2 className="text-5xl font-extrabold bg-gradient-to-r from-orange-600 to-orange-800 bg-clip-text text-transparent mb-4">
+        <h2 className="text-5xl font-extrabold text-[#F76513] mb-4">
           Nos Clients Entreprises
         </h2>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -405,7 +405,7 @@ export default function Testimonials() {
           <span className="text-green-800 font-bold text-xs uppercase tracking-wider">Avis Vérifiés</span>
         </div>
         <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-4">
-          Ce qu'ils disent <span className="text-blue-600">de nous</span>
+          Ce qu'ils disent <span className="text-[#002AD7]">de nous</span>
         </h2>
         <p className="text-slate-500 text-lg max-w-2xl mx-auto">
           Découvrez les retours d'expérience de notre communauté grandissante de particuliers et de professionnels.
@@ -420,7 +420,7 @@ export default function Testimonials() {
             <TabsTrigger
               value="particuliers"
               className={`flex items-center justify-center gap-3 ${activeTab === "particuliers"
-                ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl"
+                ? "bg-[#002AD7] text-white shadow-xl"
                 : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                 }`}
               onClick={() => setActiveTab("particuliers")}
@@ -431,7 +431,7 @@ export default function Testimonials() {
             <TabsTrigger
               value="professionnels"
               className={`flex items-center justify-center gap-3 ${activeTab === "professionnels"
-                ? "bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-xl"
+                ? "bg-[#F76513] text-white shadow-xl"
                 : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                 }`}
               onClick={() => setActiveTab("professionnels")}

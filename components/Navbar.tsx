@@ -25,24 +25,24 @@ export default function Navbar() {
                     onClick={() => protect('/')}
                     className="text-2xl font-bold flex items-center gap-1 hover:opacity-80 transition-opacity"
                 >
-                    <div className="bg-blue-600 text-white p-1 rounded-lg">
+                    <div className="bg-[#002AD7] text-white p-1 rounded-lg">
                         <Car size={24} />
                     </div>
-                    <span className="text-blue-600">EASY</span>
-                    <span className="text-orange-500">-RENT</span>
+                    <span className="text-[#002AD7]">EASY</span>
+                    <span className="text-[#F76513]">-RENT</span>
                 </button>
 
                 {/* Liens de Navigation */}
                 <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
                     <button
                         onClick={() => protect('/')}
-                        className={`transition-colors ${pathname === '/' ? 'text-blue-600 font-bold' : 'hover:text-blue-600'}`}
+                        className={`transition-colors ${pathname === '/' ? 'text-[#002AD7] font-bold' : 'hover:text-[#002AD7]'}`}
                     >
                         Home
                     </button>
-                    <button onClick={() => protect('/CarsPage')} className={pathname === '/CarsPage' ? 'text-blue-600 font-bold' : 'hover:text-blue-600 transition-colors'}>Cars</button>
-                    <button onClick={() => protect('/Agencies')} className={pathname === '/Agencies' ? 'text-blue-600 font-bold' : 'hover:text-blue-600 transition-colors'}>Agencies</button>
-                    <button onClick={() => protect('/Help')} className={pathname === '/Help' ? 'text-blue-600 font-bold' : 'hover:text-blue-600 transition-colors'}>Help</button>
+                    <button onClick={() => protect('/CarsPage')} className={pathname === '/CarsPage' ? 'text-[#002AD7] font-bold' : 'hover:text-[#002AD7] transition-colors'}>Cars</button>
+                    <button onClick={() => protect('/Agencies')} className={pathname === '/Agencies' ? 'text-[#002AD7] font-bold' : 'hover:text-[#002AD7] transition-colors'}>Agencies</button>
+                    <button onClick={() => protect('/Help')} className={pathname === '/Help' ? 'text-[#002AD7] font-bold' : 'hover:text-[#002AD7] transition-colors'}>Help</button>
                 </nav>
 
                 {/* Icônes d'Action */}
@@ -66,7 +66,7 @@ export default function Navbar() {
                     </button>
 
                     {/* Avatar / Indicateur */}
-                    <div className="w-9 h-9 bg-gradient-to-tr from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-white font-bold text-xs cursor-pointer" onClick={() => protect('/Profil')}>
+                    <div className="w-9 h-9 bg-[#F76513] rounded-full border-2 border-white shadow-sm flex items-center justify-center text-white font-bold text-xs cursor-pointer" onClick={() => protect('/Profil')}>
                         {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
                     </div>
                 </div>

@@ -37,7 +37,7 @@ export default function HomePage() {
       <section className="py-16 px-6 max-w-[1440px] mx-auto w-full">
         <div className="bg-slate-50 rounded-[2.5rem] p-8 md:p-16">
           <div className="text-center mb-16">
-            <span className="text-blue-600 font-bold tracking-wider text-sm uppercase bg-blue-100 px-3 py-1 rounded-full border border-blue-200">
+            <span className="text-[#002AD7] font-bold tracking-wider text-sm uppercase bg-blue-100 px-3 py-1 rounded-full border border-blue-200">
               Rejoignez-nous
             </span>
             <h2 className="text-3xl md:text-5xl font-bold text-blue-800 mt-4 mb-4">Espace Partenaires</h2>
@@ -52,8 +52,8 @@ export default function HomePage() {
               onClick={() => protect("/Dashboard/Upgrade/Driver")}
               className="bg-white rounded-[2.5rem] p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group text-center border border-slate-100"
             >
-              <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:bg-blue-600 transition-colors duration-300">
-                <UserCheck size={36} className="text-blue-600 group-hover:text-white transition-colors" />
+              <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:bg-[#002AD7] transition-colors duration-300">
+                <UserCheck size={36} className="text-[#002AD7] group-hover:text-white transition-colors" />
               </div>
               <h3 className="text-2xl font-bold mb-4 text-slate-800">Devenir Chauffeur</h3>
               <p className="text-slate-500 mb-8 leading-relaxed">
@@ -69,8 +69,8 @@ export default function HomePage() {
               onClick={() => protect("/Dashboard/Upgrade/Agency")}
               className="bg-white rounded-[2.5rem] p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group text-center border border-slate-100"
             >
-              <div className="w-20 h-20 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:bg-orange-500 transition-colors duration-300">
-                <Building2 size={36} className="text-orange-500 group-hover:text-white transition-colors" />
+              <div className="w-20 h-20 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:bg-[#F76513] transition-colors duration-300">
+                <Building2 size={36} className="text-[#F76513] group-hover:text-white transition-colors" />
               </div>
               <h3 className="text-2xl font-bold mb-4 text-slate-800">Devenir Agence</h3>
               <p className="text-slate-500 mb-8 leading-relaxed">
