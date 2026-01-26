@@ -43,7 +43,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         console.log(`🔌 Initialisation SSE pour user ${user.id} depuis le Contexte`);
 
         const eventSource = new EventSource(
-            `http://localhost:8081/api/notifications/stream/${user.id}`
+            `http://localhost:8080/api/notifications/stream/${user.id}`,
+            { withCredentials: false }
         );
 
         eventSource.onopen = () => setConnected(true);

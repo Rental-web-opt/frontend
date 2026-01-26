@@ -3,10 +3,12 @@
 import React, { useState } from "react";
 import { Bell, X, Check, AlertCircle, Info } from "lucide-react";
 import { useNotification, Notification } from "@/context/NotificationContext";
+import { useRouter } from "next/navigation";
 
 export default function NotificationBell() {
     const { notifications, unreadCount, markAllAsRead, clearNotification, connected } = useNotification();
     const [showDropdown, setShowDropdown] = useState(false);
+    const router = useRouter();
 
     const getIcon = (type: string) => {
         switch (type) {
@@ -71,6 +73,19 @@ export default function NotificationBell() {
                                 </div>
                             ))
                         )}
+                    </div>
+
+                    {/* Bouton voir toutes les notifications */}
+                    <div className="p-3 border-t border-slate-100 bg-slate-50">
+                        <button
+                            onClick={() => {
+                                setShowDropdown(false);
+                                router.push('/Profil?tab=notifications');
+                            }}
+                            className="w-full py-2 text-sm font-semibold text-[#002AD7] hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                            Voir toutes les notifications
+                        </button>
                     </div>
                 </div>
             )}

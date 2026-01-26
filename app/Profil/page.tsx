@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { bookingService } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { useNotification } from "@/context/NotificationContext"; // <-- Import
@@ -628,8 +629,17 @@ const SettingsView = () => {
 export default function ProfilePage() {
     const { user, logout } = useAuth(); // Utilisation du contexte Auth
     const { unreadCount } = useNotification(); // Utilisation du contexte Notif
+    const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState<"info" | "home" | "favorite" | "transactions" | "notifications" | "settings">("info");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // État pour le menu mobile
+
+    // Lire le paramètre tab de l'URL pour rediriger vers l'onglet approprié
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab === 'notifications') {
+            setActiveTab('notifications');
+        }
+    }, [searchParams]);
 
     const menuItems = [
         { id: "home", label: "Tableau de bord", icon: LayoutGrid },
