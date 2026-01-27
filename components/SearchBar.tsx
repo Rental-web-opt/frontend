@@ -36,26 +36,38 @@ export default function SearchBar({ onResults }: SearchBarProps) {
 
         setLoading(true);
         try {
-            let response;
+            // Pour Vercel : On utilise les données locales (allCars)
+            const allMockCars = require("@/modules/carsData").allCars;
 
-            if (filters.minPrice && filters.maxPrice) {
-                response = await searchService.searchByPrice(
-                    parseFloat(filters.minPrice),
-                    parseFloat(filters.maxPrice)
-                );
-            } else if (filters.type) {
-                response = await searchService.searchByType(filters.type);
-            } else if (query.trim()) {
-                response = await searchService.searchCars(query);
-            } else {
-                response = await searchService.getAvailable();
-            }
+            const filtered = allMockCars.filter((car: any) => {
+                const matchQuery = !query.trim() ||
+                    car.name.toLowerCase().includes(query.toLowerCase()) ||
+                    (car.specs?.marque && car.specs.marque.toLowerCase().includes(query.toLowerCase()));
 
-            setResults(response.data);
+                const matchType = !filters.type || car.type.toLowerCase() === filters.type.toLowerCase();
+
+                const min = filters.minPrice ? parseFloat(filters.minPrice) : 0;
+                const max = filters.maxPrice ? parseFloat(filters.maxPrice) : Infinity;
+                const matchPrice = car.price >= min && car.price <= max;
+
+                return matchQuery && matchType && matchPrice;
+            });
+
+            // Conversion au format CarResult
+            const mappedResults: CarResult[] = filtered.map((car: any) => ({
+                id: car.id.toString(),
+                name: car.name,
+                brand: car.specs?.marque || "Inconnu",
+                type: car.type,
+                pricePerDay: car.price,
+                available: true
+            }));
+
+            setResults(mappedResults);
             setShowResults(true);
-            if (onResults) onResults(response.data);
+            if (onResults) onResults(mappedResults);
         } catch (error) {
-            console.error("Erreur de recherche:", error);
+            console.error("Erreur de recherche locale:", error);
             setResults([]);
         } finally {
             setLoading(false);

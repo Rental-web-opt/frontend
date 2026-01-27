@@ -6,9 +6,10 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { bookingService } from "@/services/api";
+import { bookingService, searchService } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { useNotification } from "@/context/NotificationContext"; // <-- Import
+import { useFavorite } from "@/context/FavoriteContext";
 import {
     Home, LayoutGrid, Heart, DollarSign, Bell, Settings, LogOut,
     Search, Edit2, ChevronDown, Calendar, Car, Trash2, User,
@@ -17,49 +18,7 @@ import {
     Sun, Monitor, Crown, Menu, X, CalendarClock // Ajout de CalendarClock, Menu, X
 } from "lucide-react";
 
-// --- DONNÉES FACTICES (Mises à jour avec monthlyPrice) ---
-
-const mockNotifications = [
-    { id: 1, title: "Réservation confirmée", content: "Votre réservation pour la Mercedes GLE 450 a été confirmée.", date: "Aujourd'hui, 10:30", type: "success" },
-    { id: 2, title: "Rappel de paiement", content: "N'oubliez pas de régler le solde avant le 15 juin.", date: "Hier, 14:00", type: "warning" },
-    { id: 3, title: "Nouvelle offre", content: "-20% sur toutes les locations à Kribi !", date: "08 Juin, 09:00", type: "info" },
-];
-
-const mockTransactions = [
-    { id: 1, car: "Toyota RAV4", plate: "CE 123 AA", provider: "Avis", user: "Moi", period: "07 Juin - 10 Juin", status: "Terminé", amount: "150 000 FCFA" },
-    { id: 2, car: "Mercedes Classe C", plate: "LT 456 BB", provider: "Hertz", user: "Moi", period: "15 Juin - 17 Juin", status: "En cours", amount: "200 000 FCFA" },
-    { id: 3, car: "Hyundai Tucson", plate: "OU 789 CC", provider: "Sixt", user: "Moi", period: "20 Mai - 22 Mai", status: "Annulé", amount: "0 FCFA" },
-];
-
-const mockFavorites = [
-    {
-        id: 1,
-        name: "Toyota Camry",
-        price: "45 000",
-        monthlyPrice: "850 000", // PRIX ABONNEMENT
-        image: "/assets/car2.jpeg",
-        rating: 4.8,
-        type: "Berline"
-    },
-    {
-        id: 2,
-        name: "Range Rover Evoque",
-        price: "120 000",
-        monthlyPrice: "2 500 000", // PRIX ABONNEMENT
-        image: "/assets/car3.jpeg",
-        rating: 5.0,
-        type: "SUV"
-    },
-    {
-        id: 3,
-        name: "Audi A4",
-        price: "60 000",
-        // Pas d'abonnement sur celle-ci
-        image: "/assets/car4.jpeg",
-        rating: 4.6,
-        type: "Berline"
-    },
-];
+// --- DONNÉES FACTICES ---
 
 // --- SOUS-COMPOSANTS VUES ---
 
@@ -150,60 +109,81 @@ const InformationView = ({ user }: { user: any }) => (
     </div>
 );
 
-// Modifié pour afficher l'abonnement
-const FavoriteView = () => (
-    <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Mes Favoris</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockFavorites.map((car: any) => (
-                <div key={car.id} className="bg-white dark:bg-slate-800 rounded-3xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 group relative">
+// Modifié pour afficher les favoris réels du contexte
+const FavoriteView = () => {
+    const { favorites, toggleFavorite } = useFavorite();
 
-                    {/* Badge Abonnement */}
-                    {car.monthlyPrice && (
-                        <div className="absolute top-6 left-6 z-20 bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                            <CalendarClock size={12} /> Abonnement dispo
-                        </div>
-                    )}
+    return (
+        <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Mes Favoris</h2>
+            {favorites.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {favorites.map((car: any) => (
+                        <div key={car.id} className="bg-white dark:bg-slate-800 rounded-[2rem] p-4 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 group relative flex flex-col h-full">
 
-                    <div className="relative h-48 bg-slate-100 dark:bg-slate-900 rounded-2xl overflow-hidden mb-4">
-                        <Image src={car.image} alt={car.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <button className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full text-red-500 shadow-sm hover:bg-red-50 transition z-30">
-                            <Heart className="fill-current w-5 h-5" />
-                        </button>
-                        <span className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full">{car.type}</span>
-                    </div>
-                    <div className="px-2">
-                        <div className="flex justify-between items-start mb-2">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">{car.name}</h3>
-                            <div className="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-lg">
-                                <span className="text-xs font-bold text-orange-600 dark:text-orange-400">{car.rating}</span>
-                                <span className="text-orange-400">★</span>
+                            {/* Badge Abonnement */}
+                            {car.monthlyPrice && (
+                                <div className="absolute top-6 left-6 z-20 bg-orange-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                                    <CalendarClock size={12} /> Abonnement dispo
+                                </div>
+                            )}
+
+                            <div className="relative h-48 bg-slate-100 dark:bg-slate-900 rounded-2xl overflow-hidden mb-4">
+                                <Image src={car.image || "/assets/car1.jpeg"} alt={car.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                                <button
+                                    onClick={() => toggleFavorite(car)}
+                                    className="absolute top-3 right-3 p-2 bg-orange-500 text-white shadow-md hover:bg-orange-600 transition z-30 rounded-full"
+                                >
+                                    <Heart className="fill-current w-5 h-5" />
+                                </button>
+                                <span className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full">{car.type}</span>
+                            </div>
+
+                            <div className="px-2 flex flex-col flex-1">
+                                <div className="flex justify-between items-start mb-2">
+                                    <h3 className="text-lg font-bold text-slate-800 dark:text-white line-clamp-1">{car.name}</h3>
+                                    <div className="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-lg">
+                                        <span className="text-xs font-bold text-orange-600 dark:text-orange-400">{car.rating || "4.8"}</span>
+                                        <span className="text-orange-400">★</span>
+                                    </div>
+                                </div>
+
+                                <div className="mb-6 flex-1">
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm">
+                                        À partir de <span className="text-blue-600 dark:text-blue-400 font-black text-lg">{(car.pricePerDay || car.price)?.toLocaleString()} CFA</span>/jour
+                                    </p>
+                                    {car.monthlyPrice && (
+                                        <p className="text-slate-600 dark:text-slate-400 text-xs font-bold mt-1 flex items-center gap-1">
+                                            <CalendarClock size={12} /> Ou {car.monthlyPrice.toLocaleString()} CFA /mois
+                                        </p>
+                                    )}
+                                </div>
+
+                                <Link href={`/CarsPage/${car.id}`}>
+                                    <button className="w-full bg-blue-700 text-white rounded-xl py-3 font-bold hover:bg-orange-600 transition shadow-md hover:shadow-lg text-sm">
+                                        Louer ou S'abonner
+                                    </button>
+                                </Link>
                             </div>
                         </div>
-                        <div className="mb-4">
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">
-                                À partir de <span className="text-blue-600 dark:text-blue-400 font-bold text-lg">{car.price} FCFA</span>/jour
-                            </p>
-                            {/* Affichage du prix abonnement */}
-                            {car.monthlyPrice && (
-                                <p className="text-purple-600 dark:text-purple-400 text-xs font-bold mt-1 flex items-center gap-1 animate-pulse">
-                                    <CalendarClock size={12} /> Ou {car.monthlyPrice} FCFA /mois
-                                </p>
-                            )}
-                        </div>
-                        <button className="w-full bg-blue-600 text-white rounded-xl py-3 font-semibold hover:bg-blue-700 transition shadow-md hover:shadow-lg">
-                            Louer ou S'abonner
-                        </button>
-                    </div>
+                    ))}
+                    <Link href="/CarsPage" className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl p-4 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-slate-900/50 min-h-[350px] hover:border-blue-300 hover:bg-blue-50/30 transition cursor-pointer">
+                        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4"><Search className="w-8 h-8 text-slate-300" /></div>
+                        <p className="font-medium text-center px-4">Explorer plus de véhicules</p>
+                    </Link>
                 </div>
-            ))}
-            <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl p-4 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-slate-900/50 min-h-[350px] hover:border-blue-300 hover:bg-blue-50/30 transition cursor-pointer">
-                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4"><Search className="w-8 h-8 text-slate-300" /></div>
-                <p className="font-medium">Explorer plus de véhicules</p>
-            </div>
+            ) : (
+                <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-[2rem] border border-dashed border-slate-200 dark:border-slate-700">
+                    <Heart size={48} className="mx-auto text-slate-200 dark:text-slate-700 mb-4" />
+                    <p className="text-slate-500">Vous n'avez pas encore de favoris.</p>
+                    <Link href="/CarsPage">
+                        <button className="mt-4 text-blue-600 font-bold hover:underline">Découvrir nos voitures</button>
+                    </Link>
+                </div>
+            )}
         </div>
-    </div>
-);
+    );
+}
 
 const NotificationsView = () => {
     const { notifications, markAllAsRead, clearNotification } = useNotification();
@@ -633,11 +613,46 @@ export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<"info" | "home" | "favorite" | "transactions" | "notifications" | "settings">("info");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // État pour le menu mobile
 
+    // États pour la recherche globale
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+
+    const handleSearch = async (query: string) => {
+        setSearchQuery(query);
+        if (query.length > 2) {
+            setIsSearching(true);
+            try {
+                // Version locale pour Vercel
+                const { allCars } = require("@/modules/carsData");
+                const filtered = allCars.filter((car: any) =>
+                    car.name.toLowerCase().includes(query.toLowerCase()) ||
+                    car.specs.marque.toLowerCase().includes(query.toLowerCase())
+                );
+                setSearchResults(filtered);
+            } catch (err) {
+                console.error("Search error", err);
+            } finally {
+                setIsSearching(false);
+            }
+        } else {
+            setSearchResults([]);
+        }
+    };
+
     // Lire le paramètre tab de l'URL pour rediriger vers l'onglet approprié
     useEffect(() => {
         const tab = searchParams.get('tab');
         if (tab === 'notifications') {
             setActiveTab('notifications');
+        } else if (tab === 'favorite') {
+            setActiveTab('favorite');
+        } else if (tab === 'settings') {
+            setActiveTab('settings');
+        } else if (tab === 'info') {
+            setActiveTab('info');
+        } else if (tab === 'home') {
+            setActiveTab('home');
         }
     }, [searchParams]);
 
@@ -670,37 +685,7 @@ export default function ProfilePage() {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans flex flex-col transition-colors duration-300">
-            {/* Header */}
-            <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 px-6 md:px-12 py-4">
-                <div className="flex items-center justify-between max-w-[1440px] mx-auto">
-                    <Link href="/" className="text-2xl font-bold flex items-center gap-1">
-                        <div className="bg-blue-600 text-white p-1 rounded-lg"><Car size={24} /></div>
-                        <span className="text-blue-600">EASY</span><span className="text-orange-500">-RENT</span>
-                    </Link>
 
-                    {/* Bouton Hamburger Mobile */}
-                    <button
-                        className="md:hidden p-2 text-slate-600 dark:text-slate-300"
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    >
-                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
-
-                    <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                        <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
-                        <Link href="/CarsPage" className="hover:text-blue-600 transition-colors">Cars</Link>
-                        <Link href="/Agencies" className="hover:text-blue-600 transition-colors">Agencies</Link>
-                        <Link href="/Help" className="hover:text-blue-600 transition-colors">Help</Link>
-                    </nav>
-
-                    <div className="hidden md:flex gap-4 items-center pl-4 border-l border-slate-200 dark:border-slate-700 ml-4">
-                        <button className="p-2 rounded-full bg-blue-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition"><Heart size={20} /></button>
-                        <div className="w-9 h-9 bg-gradient-to-tr from-orange-400 to-orange-600 rounded-full border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden flex items-center justify-center text-white font-bold">
-                            {user?.fullName?.charAt(0) || "U"}
-                        </div>
-                    </div>
-                </div>
-            </header>
 
             <div className="flex flex-1 items-start max-w-[1440px] mx-auto w-full relative">
 
@@ -770,8 +755,14 @@ export default function ProfilePage() {
                 )}
 
                 <main className="flex-1 p-6 md:p-10 w-full">
-                    {/* Header Mobile Only pour le titre */}
-                    <div className="md:hidden mb-6 flex items-center justify-between">
+                    {/* Header Mobile Only pour le titre et Menu */}
+                    <div className="md:hidden mb-6 flex items-center gap-4">
+                        <button
+                            className="p-2 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 rounded-lg shadow-sm"
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        >
+                            <Menu size={24} />
+                        </button>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white capitalize">
                             {activeTab === 'home' ? 'Tableau de bord' : activeTab}
                         </h2>
@@ -786,7 +777,29 @@ export default function ProfilePage() {
                         <div className="flex items-center gap-4 w-full md:w-auto">
                             <div className="relative flex-1 md:w-64">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                                <input type="text" placeholder="Rechercher..." className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none focus:ring-2 focus:ring-blue-100 shadow-sm text-slate-700 dark:text-white" />
+                                <input
+                                    type="text"
+                                    placeholder="Rechercher une voiture..."
+                                    value={searchQuery}
+                                    onChange={(e) => handleSearch(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none focus:ring-2 focus:ring-blue-100 shadow-sm text-slate-700 dark:text-white"
+                                />
+
+                                {/* Résultats de recherche rapides */}
+                                {searchQuery.length > 2 && (searchResults.length > 0 || isSearching) && (
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
+                                        {isSearching ? (
+                                            <div className="p-4 text-center text-slate-500 text-sm">Recherche en cours...</div>
+                                        ) : (
+                                            searchResults.slice(0, 5).map(car => (
+                                                <Link key={car.id} href={`/CarsPage/${car.id}`} className="block p-3 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-50 dark:border-slate-700 last:border-0">
+                                                    <div className="font-bold text-slate-800 dark:text-white text-sm">{car.name}</div>
+                                                    <div className="text-xs text-slate-500">{car.brand} • {car.pricePerDay} CFA</div>
+                                                </Link>
+                                            ))
+                                        )}
+                                    </div>
+                                )}
                             </div>
                             <button className="relative p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-sm">
                                 <Bell className="w-5 h-5 text-slate-600 dark:text-slate-300" />

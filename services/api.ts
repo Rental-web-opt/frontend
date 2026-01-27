@@ -45,6 +45,11 @@ export const searchService = {
 
   // Recherche par gamme de prix
   searchByPrice: (min: number, max: number) => api.get(`/search/cars/price?min=${min}&max=${max}`),
+
+  // --- RECHERCHE AGENCES ---
+  searchAgencies: (query: string) => api.get(`/search/agencies?query=${encodeURIComponent(query)}`),
+  searchAgenciesByCity: (city: string) => api.get(`/search/agencies/city/${city}`),
 };
+
 
 export default api;

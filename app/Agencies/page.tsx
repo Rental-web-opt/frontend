@@ -8,7 +8,8 @@ import {
   Star, Clock, Building2, Car, ArrowRight, Settings, Loader2
 } from "lucide-react";
 // On remplace l'import statique par le service API
-import { agencyService } from "@/services/api";
+import { agencyService, searchService } from "@/services/api";
+import { allAgencies } from "@/modules/agenciesData";
 
 // Fonction utilitaire pour calculer l'ouverture (sans toucher au design)
 const isShopOpen = (openingHours: string) => {
@@ -95,34 +96,21 @@ export default function AgenciesPage() {
   const [selectedCity, setSelectedCity] = useState("Tous");
   const [openOnly, setOpenOnly] = useState(false);
 
-  // États API
+  // On utilise directement les données mockées pour Vercel
   const [agencies, setAgencies] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  // CHARGEMENT DES DONNÉES RÉELLES
   useEffect(() => {
-    const fetchAgencies = async () => {
-      try {
-        const response = await agencyService.getAll();
-        setAgencies(response.data);
-      } catch (error) {
-        console.error("Erreur chargement agences:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAgencies();
+    setAgencies(allAgencies);
   }, []);
 
   const filteredAgencies = agencies.filter(agency => {
-    // Calcul de l'ouverture pour le filtre
     const isOpen = isShopOpen(agency.openingHours);
+    const matchName = agency.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchCity = selectedCity === "Tous" || agency.city === selectedCity;
+    const matchOpen = !openOnly || isOpen;
 
-    return (
-      agency.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (selectedCity === "Tous" || agency.city === selectedCity) &&
-      (!openOnly || isOpen)
-    );
+    return matchName && matchCity && matchOpen;
   });
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-blue-600 font-bold"><Loader2 className="animate-spin mr-2" /> Chargement...</div>;
@@ -138,6 +126,21 @@ export default function AgenciesPage() {
             <h2 className="text-slate-800 text-xl font-bold flex items-center gap-2"><SlidersHorizontal size={20} className="text-blue-600" /> Filtres</h2>
             <button onClick={() => { setSearchTerm(""); setSelectedCity("Tous"); setOpenOnly(false); }} className="text-xs text-blue-600 hover:underline font-medium">Réinitialiser</button>
           </div>
+
+          <div className="mb-6">
+            <label className="text-slate-700 font-semibold text-sm mb-3 block">Rechercher une agence</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Nom de l'agence..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+            </div>
+          </div>
+
           <div className="mb-6">
             <label className="text-slate-700 font-semibold text-sm mb-3 block">Ville</label>
             <div className="flex flex-wrap gap-2">

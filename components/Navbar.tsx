@@ -59,14 +59,14 @@ export default function Navbar() {
                     </button>
 
                     <button
-                        onClick={() => protect('/Profil')}
+                        onClick={() => protect('/Profil?tab=settings')}
                         className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition text-slate-600"
                     >
                         <Settings size={20} />
                     </button>
 
                     {/* Avatar / Indicateur */}
-                    <div className="w-9 h-9 bg-[#F76513] rounded-full border-2 border-white shadow-sm flex items-center justify-center text-white font-bold text-xs cursor-pointer" onClick={() => protect('/Profil')}>
+                    <div className="w-9 h-9 bg-[#F76513] rounded-full border-2 border-white shadow-sm flex items-center justify-center text-white font-bold text-xs cursor-pointer" onClick={() => protect('/Profil?tab=info')}>
                         {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
                     </div>
                 </div>

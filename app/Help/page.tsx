@@ -182,10 +182,10 @@ export default function HelpPage() {
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">Comment pouvons-nous <br /> <span className="text-orange-400">vous aider ?</span></h1>
             <p className="text-blue-100 text-lg mb-10 max-w-2xl mx-auto">Recherchez des réponses à vos questions, parcourez la documentation ou contactez notre équipe support.</p>
             <div className="relative max-w-2xl mx-auto">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none"><Search className="h-6 w-6 text-slate-400" /></div>
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none"><Search className="h-6 w-6 text-white/50" /></div>
               <input
                 type="text"
-                className="block w-full pl-14 pr-6 py-5 rounded-2xl border-none shadow-2xl text-slate-900 placeholder:text-slate-400 focus:ring-4 focus:ring-blue-400/50 text-lg"
+                className="block w-full pl-14 pr-6 py-5 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md shadow-2xl text-white placeholder:text-blue-100 focus:ring-4 focus:ring-white/30 text-lg transition-all"
                 placeholder="Rechercher un problème, une question..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

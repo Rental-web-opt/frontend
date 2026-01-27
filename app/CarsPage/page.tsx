@@ -3,110 +3,121 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Heart, SlidersHorizontal, Users, Fuel, Gauge, Car, Star, Settings, CalendarClock, Filter, X } from "lucide-react";
-import { carService } from "@/services/api";
+import { Search, Heart, SlidersHorizontal, Users, Fuel, Gauge, Car, Star, CalendarClock, Filter, X } from "lucide-react";
+import { allCars } from "@/modules/carsData";
+import { useFavorite } from "@/context/FavoriteContext";
 
 // --- COMPOSANT CARTE AMÉLIORÉ ---
-const CarCard = ({ data }: { data: any }) => (
-  <div className="bg-white rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-slate-100 flex flex-col h-full relative">
+const CarCard = ({ data }: { data: any }) => {
+  const { toggleFavorite, isFavorite } = useFavorite();
+  const favorited = isFavorite(data.id);
 
-    {/* Badge Abonnement (Si prix mensuel existe) */}
-    {data.monthlyPrice && (
-      <div className="absolute top-4 left-4 z-20 bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm">
-        <CalendarClock size={12} /> Abonnement dispo
+  return (
+    <div className="bg-white rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-slate-100 flex flex-col h-full relative">
+
+      {/* Badge Abonnement (Si prix mensuel existe) */}
+      {data.monthlyPrice && (
+        <div className="absolute top-4 left-4 z-20 bg-orange-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm">
+          <CalendarClock size={12} /> Abonnement dispo
+        </div>
+      )}
+
+      <div className="relative h-56 bg-slate-100 overflow-hidden">
+        <Image
+          src={data.image || "/assets/car1.jpeg"}
+          alt={data.name}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-700"
+        />
+        <div
+          onClick={(e) => {
+            e.preventDefault();
+            toggleFavorite(data);
+          }}
+          className={`absolute top-4 right-4 backdrop-blur-md p-2 rounded-full transition cursor-pointer z-20 ${favorited ? "bg-orange-500 text-white shadow-lg" : "bg-white/80 text-slate-400 hover:text-red-500 hover:bg-red-50"
+            }`}
+        >
+          <Heart size={18} fill={favorited ? "currentColor" : "none"} />
+        </div>
+
+        {/* Tag Disponibilité */}
+        <div className={`absolute bottom-3 left-3 px-3 py-1 text-xs font-bold rounded-full ${data.isAvailable ? "bg-orange-600 text-white" : "bg-red-500 text-white"}`}>
+          {data.isAvailable ? "Disponible" : "Loué"}
+        </div>
       </div>
-    )}
 
-    <div className="relative h-56 bg-slate-100 overflow-hidden">
-      <Image
-        src={data.image || "/assets/car1.jpeg"}
-        alt={data.name}
-        fill
-        className="object-cover group-hover:scale-105 transition-transform duration-700"
-      />
-      <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-md p-2 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer z-20">
-        <Heart size={18} />
-      </div>
-
-      {/* Tag Disponibilité */}
-      <div className={`absolute bottom-3 left-3 px-3 py-1 text-xs font-bold rounded-full ${data.isAvailable ? "bg-green-500 text-white" : "bg-red-500 text-white"}`}>
-        {data.isAvailable ? "Disponible" : "Loué"}
-      </div>
-    </div>
-
-    <div className="p-5 flex flex-col flex-1">
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <h3 className="font-bold text-slate-900 text-lg line-clamp-1">{data.name}</h3>
-          <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
-            <Star size={12} className="text-orange-400 fill-orange-400" />
-            <span>{data.rating || "4.8"} (24 avis)</span>
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <h3 className="font-bold text-slate-900 text-lg line-clamp-1">{data.name}</h3>
+            <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
+              <Star size={12} className="text-blue-400 fill-blue-400" />
+              <span>{data.rating || "4.8"} (24 avis)</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Prix Double Affichage */}
-      <div className="mb-4">
-        <div className="flex items-baseline gap-1">
-          <span className="text-xl font-black text-blue-600">{data.pricePerDay?.toLocaleString()} CFA</span>
-          <span className="text-xs text-slate-400 font-medium">/jour</span>
-        </div>
-        {data.monthlyPrice && (
-          <div className="flex items-center gap-1 text-xs font-bold text-purple-600 mt-1 animate-pulse">
-            <CalendarClock size={12} /> Ou {data.monthlyPrice.toLocaleString()} CFA /mois
+        {/* Prix Double Affichage */}
+        <div className="mb-4">
+          <div className="flex items-baseline gap-1">
+            <span className="text-xl font-black text-blue-600">{data.pricePerDay?.toLocaleString()} CFA</span>
+            <span className="text-xs text-slate-400 font-medium">/jour</span>
           </div>
-        )}
-      </div>
+          {data.monthlyPrice && (
+            <div className="flex items-center gap-1 text-xs font-bold text-slate-600 mt-1 animate-pulse">
+              <CalendarClock size={12} /> Ou {data.monthlyPrice.toLocaleString()} CFA /mois
+            </div>
+          )}
+        </div>
 
-      {/* Specs */}
-      <div className="grid grid-cols-3 gap-2 py-3 border-t border-slate-100 mb-4">
-        <div className="flex flex-col items-center text-center gap-1">
-          <Users size={16} className="text-slate-400" />
-          <span className="text-xs text-slate-600 font-medium">{data.seats || 5} Pl.</span>
+        {/* Specs */}
+        <div className="grid grid-cols-3 gap-2 py-3 border-t border-slate-100 mb-4">
+          <div className="flex flex-col items-center text-center gap-1">
+            <Users size={16} className="text-slate-400" />
+            <span className="text-xs text-slate-600 font-medium">{data.seats || 5} Pl.</span>
+          </div>
+          <div className="flex flex-col items-center text-center gap-1">
+            <Fuel size={16} className="text-slate-400" />
+            <span className="text-xs text-slate-600 font-medium">{data.fuelType || "Essence"}</span>
+          </div>
+          <div className="flex flex-col items-center text-center gap-1">
+            <Gauge size={16} className="text-slate-400" />
+            <span className="text-xs text-slate-600 font-medium truncate w-full">{data.transmission || "Auto"}</span>
+          </div>
         </div>
-        <div className="flex flex-col items-center text-center gap-1">
-          <Fuel size={16} className="text-slate-400" />
-          <span className="text-xs text-slate-600 font-medium">{data.fuelType || "Essence"}</span>
-        </div>
-        <div className="flex flex-col items-center text-center gap-1">
-          <Gauge size={16} className="text-slate-400" />
-          <span className="text-xs text-slate-600 font-medium truncate w-full">{data.transmission || "Auto"}</span>
-        </div>
-      </div>
 
-      <div className="mt-auto">
-        <Link href={`/CarsPage/${data.id}`}>
-          <button className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-lg flex items-center justify-center gap-2">
-            Voir les offres
-          </button>
-        </Link>
+        <div className="mt-auto">
+          <Link href={`/CarsPage/${data.id}`}>
+            <button className="w-full py-3 bg-blue-700 text-white rounded-xl font-bold hover:bg-orange-600 transition-colors shadow-lg flex items-center justify-center gap-2">
+              Voir les offres
+            </button>
+          </Link>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default function CarsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [priceRange, setPriceRange] = useState(200000);
   const [selectedType, setSelectedType] = useState("Tous");
 
-  // États de données
+  // On utilise directement les données mockées pour Vercel
   const [cars, setCars] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile sidebar
+  const [loading, setLoading] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const fetchCars = async () => {
-      try {
-        const response = await carService.getAll();
-        setCars(response.data);
-      } catch (error) {
-        console.error("Erreur chargement:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCars();
+    // Mapping des données mockées au format attendu
+    const mappedCars = allCars.map((c: any) => ({
+      ...c,
+      pricePerDay: c.price,
+      fuelType: c.fuel,
+      isAvailable: true,
+      rating: 4.8
+    }));
+    setCars(mappedCars);
   }, []);
 
   const filteredCars = cars.filter((car) => {
@@ -118,8 +129,6 @@ export default function CarsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
-
-      {/* HEADER SUPPRIMÉ CAR GÉRÉ PAR LE LAYOUT */}
 
       <main className="max-w-[1440px] mx-auto p-6 flex flex-col md:flex-row gap-8 relative mt-4">
 
@@ -177,8 +186,22 @@ export default function CarsPage() {
             </div>
           </div>
 
+          {/* Barre de Recherche Locale (pour Vercel) */}
+          <div className="mb-12 relative">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 w-6 h-6" />
+            <input
+              type="text"
+              placeholder="Rechercher une voiture par nom, marque..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-16 pr-6 py-5 rounded-[2rem] bg-white border border-slate-200 outline-none focus:ring-4 focus:ring-blue-100 shadow-lg text-lg text-slate-700 transition-all placeholder:text-slate-400 font-medium"
+            />
+          </div>
+
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-slate-800">{filteredCars.length} véhicules disponibles</h2>
+            <h2 className="text-2xl font-bold text-slate-800">
+              {searchTerm ? `Résultats pour "${searchTerm}"` : `${filteredCars.length} véhicules disponibles`}
+            </h2>
           </div>
 
           {loading ? (

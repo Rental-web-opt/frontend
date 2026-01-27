@@ -7,6 +7,8 @@ import Navbar from '@/components/Navbar';
 import { AuthProvider } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext'; // <-- AJOUT
 
+import { FavoriteProvider } from '@/context/FavoriteContext';
+
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
@@ -29,12 +31,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="fr" className={`${inter.variable} ${poppins.variable} antialiased`}>
       <body className="flex flex-col min-h-screen">
         <AuthProvider>
-          <NotificationProvider> {/* <-- AJOUT DU PROVIDER */}
-            <Navbar /> {/* <-- NAVBAR AJOUTÉE */}
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
+          <NotificationProvider>
+            <FavoriteProvider>
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </FavoriteProvider>
           </NotificationProvider>
         </AuthProvider>
       </body>
