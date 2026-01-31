@@ -32,9 +32,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const parsedUser = JSON.parse(storedUser);
         if (parsedUser && parsedUser.id) {
-            setUser(parsedUser);
+          setUser(parsedUser);
         } else {
-            localStorage.removeItem("user");
+          localStorage.removeItem("user");
         }
       } catch (e) {
         console.error("Erreur lecture user localStorage", e);
@@ -46,13 +46,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (userData: any) => {
     if (!userData || !userData.id) {
-        console.error("Erreur Login : L'objet utilisateur ne contient pas d'ID", userData);
-        return;
+      console.error("Erreur Login : L'objet utilisateur ne contient pas d'ID", userData);
+      return;
     }
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
-    
-    if (userData.role === 'AGENCY') router.push('/Dashboard/Agency');
+
+    // Redirection selon le rôle
+    if (userData.role === 'ADMIN') router.push('/Admin');
+    else if (userData.role === 'AGENCY') router.push('/Dashboard/Agency');
     else if (userData.role === 'DRIVER') router.push('/Dashboard/Driver');
     else router.push('/Profil');
   };

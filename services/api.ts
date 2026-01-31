@@ -51,5 +51,11 @@ export const searchService = {
   searchAgenciesByCity: (city: string) => api.get(`/search/agencies/city/${city}`),
 };
 
+export const paymentService = {
+  getMyPayments: () => api.get('/payments/my-payments', { withCredentials: true }),
+  getSavedMethods: () => api.get('/payments/methods', { withCredentials: true }),
+};
+
+
 
 export default api;

@@ -102,15 +102,18 @@ export default function CarDetailsPage() {
 
             console.log("Envoi :", bookingPayload);
 
-            await bookingService.create(bookingPayload);
-            setStatusMsg({ type: 'success', text: "Réservation réussie !" });
+            await bookingService.create(bookingPayload)
+                .then(res => {
+                    const bookingId = res.data.id; // Assume API returns created booking with ID
+                    const totalAmount = displayedPrice; // Value calculated above
 
-            // Redirection intelligente selon le rôle
-            setTimeout(() => {
-                if (user.role === 'AGENCY') router.push('/Dashboard/Agency');
-                else if (user.role === 'DRIVER') router.push('/Dashboard/Driver');
-                else router.push('/Profil');
-            }, 2000);
+                    setStatusMsg({ type: 'success', text: "Réservation initiée ! Redirection vers le paiement..." });
+
+                    setTimeout(() => {
+                        router.push(`/Checkout?amount=${totalAmount}&bookingId=${bookingId}&description=Location ${car.name}`);
+                    }, 1000);
+                });
+
 
         } catch (error: any) {
             console.error("Erreur:", error);

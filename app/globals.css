@@ -13,9 +13,12 @@
   --color-foreground: var(--foreground);
 
   /* ----- MODIFICATION POLICES ----- */
-  --font-sans: var(--font-inter);  /* Police par défaut (corps) */
-  --font-title: var(--font-poppins); /* Police pour les titres */
+  --font-sans: var(--font-inter);
+  /* Police par défaut (corps) */
+  --font-title: var(--font-poppins);
+  /* Police pour les titres */
 }
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -26,4 +29,18 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+@layer base {
+
+  input,
+  textarea,
+  select {
+    @apply !text-slate-900;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply !text-slate-400;
+  }
 }
