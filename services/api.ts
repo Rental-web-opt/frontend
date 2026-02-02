@@ -20,10 +20,15 @@ import {
 // Détecte si on est sur Vercel (production) ou en local (development)
 const IS_BROWSER = typeof window !== 'undefined';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-const USE_MOCK_DATA = IS_PRODUCTION; // En production (Vercel), utiliser les données fictives
+const IS_VERCEL = IS_BROWSER && window.location.hostname.includes('vercel.app');
+const HAS_BACKEND = typeof process.env.NEXT_PUBLIC_API_URL !== 'undefined' && process.env.NEXT_PUBLIC_API_URL !== '';
 
-// URL du backend (utilisé uniquement en local)
+// Utiliser les données mock si on est en production OU sur Vercel OU si pas de backend configuré
+const USE_MOCK_DATA = IS_PRODUCTION || IS_VERCEL || !HAS_BACKEND;
+
+// URL du backend (utilisé uniquement en local avec backend actif)
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api';
+
 
 const api = axios.create({
   baseURL: API_URL,
