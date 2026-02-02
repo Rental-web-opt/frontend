@@ -14,30 +14,15 @@ import {
 } from '@/modules/mockData';
 
 // ============================================
-// 🌐 CONFIGURATION ENVIRONNEMENT
+// 🌐 CONFIGURATION - MODE DÉMO VERCEL
 // ============================================
 
-// URL du backend (utilisé uniquement en local avec backend actif)
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api';
+// 🚀 MODE DÉMO ACTIVÉ - Toutes les données sont fictives
+// Pour utiliser le vrai backend, utilisez la branche 'develop'
+const USE_MOCK_DATA = true;
 
-// Fonction pour détecter si on doit utiliser les données mock (appelée au runtime)
-const shouldUseMockData = (): boolean => {
-  // Côté serveur (SSR) en production = mode mock
-  if (typeof window === 'undefined') {
-    return process.env.NODE_ENV === 'production';
-  }
-
-  // Côté client : vérifier si on est sur Vercel ou pas sur localhost
-  const hostname = window.location.hostname;
-  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-  const isVercel = hostname.includes('vercel.app');
-
-  // Si on est sur Vercel OU pas en localhost = mode mock
-  return isVercel || !isLocalhost;
-};
-
-// Variable pour le mode mock (recalculée à chaque appel)
-const USE_MOCK_DATA = shouldUseMockData();
+// URL du backend (non utilisé en mode démo)
+const API_URL = 'http://localhost:8081/api';
 
 
 const api = axios.create({
