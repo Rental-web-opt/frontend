@@ -4,10 +4,9 @@ import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Star, CheckCircle, Calendar, CalendarClock, Clock, Loader2, UserCheck, User, AlertCircle, Tag, XCircle, CreditCard } from "lucide-react";
-import { carService, bookingService, driverService } from "@/services/api";
+import { carService, bookingService, driverService, isMockMode } from "@/services/api";
 import { allCars } from "@/modules/carsData";
 import { useAuth } from "@/context/AuthContext";
-import api from "@/services/api";
 
 export default function CarDetailsPage() {
     const { id } = useParams();
@@ -63,9 +62,9 @@ export default function CarDetailsPage() {
                 })
                 .finally(() => setLoading(false));
 
-            // Charger les créneaux occupés
-            api.get(`/bookings/car/${id}/occupied`)
-                .then(res => setOccupiedSlots(res.data))
+            // Charger les créneaux occupés via le service (supporte mock)
+            bookingService.getOccupiedSlots(Number(id))
+                .then(res => setOccupiedSlots(res.data || []))
                 .catch(err => console.log("Pas de créneaux occupés"));
         }
     }, [id]);
@@ -99,17 +98,17 @@ export default function CarDetailsPage() {
 
             setCheckingAvailability(true);
             try {
-                const res = await api.get(`/bookings/check-availability`, {
-                    params: {
-                        carId: car.id,
-                        startDate: fullStartDate,
-                        endDate: fullEndDate
-                    }
-                });
+                // Utiliser le service (supporte mock)
+                const res = await bookingService.checkAvailability(car.id, fullStartDate, fullEndDate);
                 setIsAvailable(res.data.available);
             } catch (err) {
                 console.error("Erreur vérification disponibilité", err);
-                setIsAvailable(null);
+                // En mode mock, considérer comme disponible
+                if (isMockMode()) {
+                    setIsAvailable(true);
+                } else {
+                    setIsAvailable(null);
+                }
             } finally {
                 setCheckingAvailability(false);
             }

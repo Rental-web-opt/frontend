@@ -3,7 +3,7 @@
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import AdminLayout from "@/components/AdminLayout";
 import { useEffect, useState } from "react";
-import api from "@/services/api";
+import api, { userService } from "@/services/api";
 import { Users, Search, Shield, UserX, UserCheck, Filter, Plus, X, Eye, EyeOff, Key, ChevronDown, Mail, Phone, Edit2, Trash2, MoreVertical, User, Building, Car } from "lucide-react";
 
 interface UserType {
@@ -46,7 +46,7 @@ export default function UsersManagement() {
 
     const fetchUsers = async () => {
         try {
-            const response = await api.get("/admin/users");
+            const response = await userService.getAll();
             setUsers(response.data);
         } catch (error) {
             console.error("Erreur lors du chargement des utilisateurs", error);

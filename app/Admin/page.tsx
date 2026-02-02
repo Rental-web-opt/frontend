@@ -3,7 +3,7 @@
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import AdminLayout from "@/components/AdminLayout";
 import { useEffect, useState } from "react";
-import api from "@/services/api";
+import { adminService, agencyService, carService, bookingService } from "@/services/api";
 import {
     Users, Building2, Car, CalendarCheck, TrendingUp, Activity,
     ArrowUpRight, DollarSign, BarChart3, PieChart, Eye, MapPin
@@ -64,11 +64,12 @@ export default function AdminDashboard() {
 
     const fetchAllData = async () => {
         try {
+            // Utiliser les services qui supportent le mode mock
             const [statsRes, agenciesRes, carsRes, bookingsRes] = await Promise.all([
-                api.get("/admin/stats"),
-                api.get("/agencies"),
-                api.get("/cars"),
-                api.get("/bookings")
+                adminService.getStats(),
+                agencyService.getAll(),
+                carService.getAll(),
+                bookingService.getAll()
             ]);
 
             setStats(statsRes.data);
@@ -232,8 +233,8 @@ export default function AdminDashboard() {
                                                 <div className="flex items-start gap-4">
                                                     {/* Rang */}
                                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-white ${index === 0 ? 'bg-amber-500' :
-                                                            index === 1 ? 'bg-slate-400' :
-                                                                index === 2 ? 'bg-amber-700' : 'bg-slate-300'
+                                                        index === 1 ? 'bg-slate-400' :
+                                                            index === 2 ? 'bg-amber-700' : 'bg-slate-300'
                                                         }`}>
                                                         #{index + 1}
                                                     </div>

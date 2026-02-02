@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CreditCard, Smartphone, CheckCircle, AlertCircle } from "lucide-react";
-import { bookingService } from "@/services/api";
+import { bookingService, isMockMode } from "@/services/api";
 
 interface CheckoutFormProps {
     amount: number;
@@ -53,35 +52,48 @@ export default function CheckoutForm({ amount }: CheckoutFormProps) {
 
         try {
             if (paymentMethod === 'CARD') {
-                if (!stripe || !elements) return;
+                // MODE MOCK: Simuler le paiement
+                if (isMockMode()) {
+                    console.log("🎭 Mode démo: Simulation du paiement par carte");
+                    await new Promise(resolve => setTimeout(resolve, 2000));
 
-                // 1. Demander le ClientSecret au Backend
-                const response = await axios.post("http://localhost:8081/api/payment/create-payment-intent", {
-                    amount: amount,
-                    currency: "xaf"
-                });
+                    // Simulation réussie - confirmer la réservation
+                    const confirmed = await confirmBookingAfterPayment();
 
-                const { clientSecret } = response.data;
+                    setSuccessMessage("🎭 [DEMO] Paiement simulé réussi ! Votre réservation est confirmée.");
 
-                // 2. Confirmer le paiement avec Stripe
-                const result = await stripe.confirmCardPayment(clientSecret, {
-                    payment_method: {
-                        card: elements.getElement(CardElement)!,
-                    },
-                });
-
-                if (result.error) {
-                    setErrorMessage(result.error.message || "Erreur de paiement");
+                    setTimeout(() => {
+                        router.push("/Profil?tab=home");
+                    }, 2000);
                 } else {
-                    if (result.paymentIntent?.status === "succeeded") {
-                        // 3. CONFIRMER LA RÉSERVATION
-                        const confirmed = await confirmBookingAfterPayment();
+                    // MODE RÉEL avec Stripe
+                    if (!stripe || !elements) return;
 
-                        setSuccessMessage("Paiement réussi ! Votre réservation est confirmée.");
+                    const axios = (await import('axios')).default;
+                    const response = await axios.post("http://localhost:8081/api/payment/create-payment-intent", {
+                        amount: amount,
+                        currency: "xaf"
+                    });
 
-                        setTimeout(() => {
-                            router.push("/Profil?tab=home");
-                        }, 2000);
+                    const { clientSecret } = response.data;
+
+                    const result = await stripe.confirmCardPayment(clientSecret, {
+                        payment_method: {
+                            card: elements.getElement(CardElement)!,
+                        },
+                    });
+
+                    if (result.error) {
+                        setErrorMessage(result.error.message || "Erreur de paiement");
+                    } else {
+                        if (result.paymentIntent?.status === "succeeded") {
+                            const confirmed = await confirmBookingAfterPayment();
+                            setSuccessMessage("Paiement réussi ! Votre réservation est confirmée.");
+
+                            setTimeout(() => {
+                                router.push("/Profil?tab=home");
+                            }, 2000);
+                        }
                     }
                 }
             } else {

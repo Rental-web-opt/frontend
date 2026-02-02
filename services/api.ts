@@ -21,6 +21,9 @@ import {
 // Pour utiliser le vrai backend, utilisez la branche 'develop'
 const USE_MOCK_DATA = true;
 
+// Fonction exportée pour vérifier le mode mock depuis d'autres fichiers
+export const isMockMode = () => USE_MOCK_DATA;
+
 // URL du backend (non utilisé en mode démo)
 const API_URL = 'http://localhost:8081/api';
 
@@ -36,13 +39,35 @@ const api = axios.create({
 // 📦 ÉTAT LOCAL POUR LE MODE DÉMO
 // ============================================
 
+// Fonction pour charger depuis localStorage ou utiliser les valeurs par défaut
+const loadFromStorage = <T>(key: string, defaultValue: T): T => {
+  if (typeof window === 'undefined') return defaultValue;
+  try {
+    const stored = localStorage.getItem(`easyrent_mock_${key}`);
+    if (stored) return JSON.parse(stored);
+  } catch (e) {
+    console.warn(`Erreur chargement ${key}:`, e);
+  }
+  return defaultValue;
+};
+
+const saveToStorage = <T>(key: string, value: T): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(`easyrent_mock_${key}`, JSON.stringify(value));
+  } catch (e) {
+    console.warn(`Erreur sauvegarde ${key}:`, e);
+  }
+};
+
 // Copies mutables des données pour permettre les modifications en mode démo
-let localBookings = [...mockBookings];
-let localPayments = [...mockPayments];
-let localNotifications = [...mockNotifications];
-let notificationIdCounter = mockNotifications.length + 1;
-let bookingIdCounter = mockBookings.length + 1;
-let paymentIdCounter = mockPayments.length + 1;
+// Utilise localStorage pour partager entre onglets
+let localBookings = loadFromStorage('bookings', [...mockBookings]);
+let localPayments = loadFromStorage('payments', [...mockPayments]);
+let localNotifications = loadFromStorage('notifications', [...mockNotifications]);
+let notificationIdCounter = loadFromStorage('notificationId', mockNotifications.length + 1);
+let bookingIdCounter = loadFromStorage('bookingId', mockBookings.length + 1);
+let paymentIdCounter = loadFromStorage('paymentId', mockPayments.length + 1);
 
 // ============================================
 // 🔧 HELPER POUR CRÉER DES RÉPONSES MOCK
@@ -74,6 +99,11 @@ export const createMockNotification = (
     data,
   };
   localNotifications.unshift(notification);
+
+  // Sauvegarder dans localStorage pour partager entre onglets
+  saveToStorage('notifications', localNotifications);
+  saveToStorage('notificationId', notificationIdCounter);
+
   return notification;
 };
 
@@ -205,16 +235,18 @@ export const bookingService = {
     if (USE_MOCK_DATA) {
       await delay(800); // Simuler le temps de traitement
 
-      const car = mockCars.find(c => c.id === data.carId);
+      // Accepter carId ou car.id
+      const carId = data.carId || data.car?.id;
+      const car = mockCars.find(c => c.id === carId);
       const user = mockUsers.find(u => u.id === (currentUserId || data.userId)) || mockUsers[1];
 
-      if (!car) return mockResponse({ error: "Véhicule non trouvé" });
+      if (!car) return mockResponse({ error: true, message: "Véhicule non trouvé" });
 
       const newBooking: MockBooking = {
         id: bookingIdCounter++,
         userId: currentUserId || data.userId || 2,
         user,
-        carId: data.carId,
+        carId: carId, // Utiliser la variable calculée
         car,
         startDate: data.startDate,
         endDate: data.endDate,
@@ -226,10 +258,13 @@ export const bookingService = {
 
       localBookings.unshift(newBooking);
 
-      // Générer les notifications
-      if (currentUserId) {
-        generateBookingNotifications(newBooking, currentUserId);
-      }
+      // Sauvegarder dans localStorage pour partager entre onglets
+      saveToStorage('bookings', localBookings);
+      saveToStorage('bookingId', bookingIdCounter);
+
+      // Générer les notifications (utiliser l'userId de la réservation)
+      const userId = currentUserId || data.userId || 2;
+      generateBookingNotifications(newBooking, userId);
 
       return mockResponse(newBooking);
     }
@@ -516,6 +551,8 @@ export const notificationService = {
   getByUser: async (userId: number) => {
     if (USE_MOCK_DATA) {
       await delay(200);
+      // Recharger depuis localStorage pour voir les nouvelles notifications (de l'autre onglet)
+      localNotifications = loadFromStorage('notifications', [...mockNotifications]);
       return mockResponse(localNotifications.filter(n => n.userId === userId));
     }
     return api.get(`/notifications/user/${userId}`);
@@ -523,6 +560,8 @@ export const notificationService = {
 
   getUnreadCount: async (userId: number) => {
     if (USE_MOCK_DATA) {
+      // Recharger depuis localStorage
+      localNotifications = loadFromStorage('notifications', [...mockNotifications]);
       const unread = localNotifications.filter(n => n.userId === userId && !n.read).length;
       return mockResponse({ count: unread });
     }
@@ -678,8 +717,5 @@ export const resetMockData = () => {
   paymentIdCounter = mockPayments.length + 1;
   notificationIdCounter = mockNotifications.length + 1;
 };
-
-// Vérifier si on est en mode mock
-export const isMockMode = () => USE_MOCK_DATA;
 
 export default api;

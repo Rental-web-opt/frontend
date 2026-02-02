@@ -3,6 +3,7 @@
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import AdminLayout from "@/components/AdminLayout";
 import { useEffect, useState } from "react";
+import { driverService } from "@/services/api";
 import api from "@/services/api";
 import { Car, Search, Star, Trash2, Phone, Mail, Plus, X, Edit2, User, MapPin, Shield } from "lucide-react";
 
@@ -38,7 +39,7 @@ export default function DriversManagement() {
 
     const fetchDrivers = async () => {
         try {
-            const response = await api.get("/drivers");
+            const response = await driverService.getAll();
             setDrivers(response.data);
         } catch (error) {
             console.error("Erreur lors du chargement des chauffeurs", error);

@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Building2, ArrowRight, Loader2, AlertCircle } from "lucide-react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
+import { isMockMode } from "@/services/api";
 
 export default function UpgradeAgencyPage() {
   const { user, login } = useAuth();
@@ -18,22 +18,30 @@ export default function UpgradeAgencyPage() {
     setError("");
 
     try {
-      // 1. Appel Backend -> Demande de rôle AGENCY
+      // MODE MOCK: Simuler la demande d'upgrade
+      if (isMockMode()) {
+        console.log("🎭 Mode démo: Simulation de la demande d'upgrade en AGENCY");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        alert("✅ [DEMO] Votre demande de compte Agence a été soumise ! Un administrateur l'examinera bientôt.");
+        setLoading(false);
+        router.push("/Profil");
+        return;
+      }
+
+      // MODE RÉEL: Appel Backend
+      const axios = (await import('axios')).default;
       const response = await axios.post(`http://localhost:8081/api/users/${user.id}/upgrade`, {
         role: "AGENCY"
       });
 
-      // 2. Affichage du message de succès
       const data = response.data;
 
-      // Si la demande est en attente de validation
       if (data.status === "PENDING" || data.message) {
         alert("✅ " + (data.message || "Votre demande a été soumise avec succès !"));
         setLoading(false);
-        // Redirection vers le profil
         router.push("/Profil");
       } else {
-        // Si upgrade direct (cas DRIVER par exemple)
         login(data);
       }
 
@@ -58,6 +66,12 @@ export default function UpgradeAgencyPage() {
           Vous possédez des véhicules ? Passez en compte <strong>Agence</strong> pour gérer votre flotte
           et publier vos annonces de location.
         </p>
+
+        {isMockMode() && (
+          <div className="bg-orange-50 border border-orange-200 text-orange-700 p-3 rounded-xl mb-6 text-sm">
+            🎭 Mode démo: La demande sera simulée localement
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 flex items-center justify-center gap-2">

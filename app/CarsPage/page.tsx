@@ -41,8 +41,8 @@ const CarCard = ({ data }: { data: any }) => {
         </div>
 
         {/* Tag Disponibilité */}
-        <div className={`absolute bottom-3 left-3 px-3 py-1 text-xs font-bold rounded-full ${data.isAvailable ? "bg-orange-600 text-white" : "bg-red-500 text-white"}`}>
-          {data.isAvailable ? "Disponible" : "Loué"}
+        <div className={`absolute bottom-3 left-3 px-3 py-1 text-xs font-bold rounded-full ${(data.available ?? data.isAvailable ?? true) ? "bg-green-600 text-white" : "bg-red-500 text-white"}`}>
+          {(data.available ?? data.isAvailable ?? true) ? "Disponible" : "Loué"}
         </div>
       </div>
 
@@ -119,9 +119,10 @@ export default function CarsPage() {
             const apiCars = res.data.map((c: any) => ({
               ...c,
               pricePerDay: c.pricePerDay,
-              monthlyPrice: c.monthlyPrice || (c.pricePerDay * 30 * 0.8), // Est. si manquant
+              monthlyPrice: c.monthlyPrice || (c.pricePerDay * 30 * 0.8),
               image: c.image || "/assets/car1.jpeg",
-              rating: 4.8 // Default rating
+              rating: c.rating || 4.8,
+              available: c.available !== undefined ? c.available : true // Garder le champ available
             }));
             setCars(apiCars);
           } else {
@@ -135,7 +136,7 @@ export default function CarsPage() {
             ...c,
             pricePerDay: c.price,
             fuelType: c.fuel,
-            isAvailable: true,
+            available: true, // Utiliser 'available' au lieu de 'isAvailable'
             rating: 4.8
           }));
           setCars(mappedCars);

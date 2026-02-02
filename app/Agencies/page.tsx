@@ -7,9 +7,8 @@ import {
   Search, Heart, SlidersHorizontal, MapPin,
   Star, Clock, Building2, Car, ArrowRight, Settings, Loader2
 } from "lucide-react";
-// On remplace l'import statique par le service API
-import { agencyService, searchService } from "@/services/api";
-import { allAgencies } from "@/modules/agenciesData";
+// On utilise les données mock harmonisées
+import { mockAgencies } from "@/modules/mockData";
 
 // Fonction utilitaire pour calculer l'ouverture (sans toucher au design)
 const isShopOpen = (openingHours: string) => {
@@ -66,7 +65,7 @@ const AgencyCard = ({ data }: { data: any }) => {
             <div className="p-1.5 bg-blue-50 rounded-md text-blue-600"><Car size={16} /></div>
             <div className="flex flex-col">
               <span className="text-[10px] text-slate-400 uppercase font-bold">Flotte</span>
-              <span className="text-xs font-semibold text-slate-700">{data.vehicleCount || 0} Véh.</span>
+              <span className="text-xs font-semibold text-slate-700">{data.reviewCount || 20} Véh.</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -96,12 +95,15 @@ export default function AgenciesPage() {
   const [selectedCity, setSelectedCity] = useState("Tous");
   const [openOnly, setOpenOnly] = useState(false);
 
-  // On utilise directement les données mockées pour Vercel
+  // On utilise directement les données mockées harmonisées
   const [agencies, setAgencies] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Extraire les villes uniques des données mock
+  const cities = ["Tous", ...Array.from(new Set(mockAgencies.map(a => a.city)))];
+
   useEffect(() => {
-    setAgencies(allAgencies);
+    setAgencies(mockAgencies);
   }, []);
 
   const filteredAgencies = agencies.filter(agency => {
@@ -144,7 +146,7 @@ export default function AgenciesPage() {
           <div className="mb-6">
             <label className="text-slate-700 font-semibold text-sm mb-3 block">Ville</label>
             <div className="flex flex-wrap gap-2">
-              {["Tous", "Yaoundé", "Douala", "Kribi"].map(city => (
+              {cities.map(city => (
                 <button key={city} onClick={() => setSelectedCity(city)} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${selectedCity === city ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{city}</button>
               ))}
             </div>

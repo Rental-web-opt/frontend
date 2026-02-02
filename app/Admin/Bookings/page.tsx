@@ -3,6 +3,7 @@
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import AdminLayout from "@/components/AdminLayout";
 import { useEffect, useState } from "react";
+import { adminService } from "@/services/api";
 import api from "@/services/api";
 import { CalendarCheck, Search, Filter, Car, User, Trash2, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, ChevronDown, X, Eye, Calendar, MapPin } from "lucide-react";
 
@@ -54,7 +55,7 @@ export default function BookingsManagement() {
 
     const fetchBookings = async () => {
         try {
-            const response = await api.get("/admin/bookings");
+            const response = await adminService.getAllBookings();
             setBookings(response.data);
         } catch (error) {
             console.error("Erreur lors du chargement des réservations", error);

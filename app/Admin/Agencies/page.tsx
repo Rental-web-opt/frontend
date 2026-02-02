@@ -3,6 +3,7 @@
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import AdminLayout from "@/components/AdminLayout";
 import { useEffect, useState } from "react";
+import { agencyService } from "@/services/api";
 import api from "@/services/api";
 import { Building2, Search, MapPin, Star, Trash2, Phone, Mail, Plus, X, Edit2, Globe, Clock } from "lucide-react";
 
@@ -43,7 +44,7 @@ export default function AgenciesManagement() {
 
     const fetchAgencies = async () => {
         try {
-            const response = await api.get("/admin/agencies");
+            const response = await agencyService.getAll();
             setAgencies(response.data);
         } catch (error) {
             console.error("Erreur lors du chargement des agences", error);

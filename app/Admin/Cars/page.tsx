@@ -3,6 +3,7 @@
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import AdminLayout from "@/components/AdminLayout";
 import { useEffect, useState } from "react";
+import { carService } from "@/services/api";
 import api from "@/services/api";
 import { Car, Search, Filter, CheckCircle, XCircle, Trash2, MapPin, DollarSign } from "lucide-react";
 
@@ -29,7 +30,7 @@ export default function CarsManagement() {
 
     const fetchCars = async () => {
         try {
-            const response = await api.get("/admin/cars");
+            const response = await carService.getAll();
             setCars(response.data);
         } catch (error) {
             console.error("Erreur lors du chargement des voitures", error);
@@ -162,8 +163,8 @@ export default function CarsManagement() {
                                         key={f.key}
                                         onClick={() => setFilter(f.key)}
                                         className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all ${filter === f.key
-                                                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
-                                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                            ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
+                                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                             }`}
                                     >
                                         {f.label}
@@ -232,8 +233,8 @@ export default function CarsManagement() {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${car.available
-                                                            ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                                                            : "bg-red-100 text-red-700 border border-red-200"
+                                                        ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                                        : "bg-red-100 text-red-700 border border-red-200"
                                                         }`}>
                                                         {car.available ? <CheckCircle size={14} /> : <XCircle size={14} />}
                                                         {car.available ? "Disponible" : "Louée"}

@@ -2,27 +2,44 @@
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import axios from "axios"; // Assurez-vous d'avoir axios
+import { isMockMode } from "@/services/api";
 
 export default function UpgradePage() {
-  const params = useParams(); // role = "Driver" ou "Agency"
-  const { user, login } = useAuth(); // On aura besoin de re-login pour mettre à jour le rôle local
+  const params = useParams();
+  const { user, login } = useAuth();
   const router = useRouter();
   const roleTarget = params?.role as string; // "Driver" ou "Agency"
 
   const handleUpgrade = async () => {
     try {
-      // Appel au Backend pour changer le rôle
+      // MODE MOCK: Simuler le changement de rôle
+      if (isMockMode()) {
+        console.log("🎭 Mode démo: Simulation du changement de rôle");
+
+        if (user) {
+          // Créer un utilisateur mis à jour avec le nouveau rôle
+          const updatedUser = {
+            ...user,
+            role: roleTarget.toUpperCase()
+          };
+
+          // Sauvegarder dans localStorage
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+
+          login(updatedUser);
+          alert(`✅ [DEMO] Votre compte a été mis à niveau en ${roleTarget} !`);
+        }
+        return;
+      }
+
+      // MODE RÉEL: Appel au Backend
+      const axios = (await import('axios')).default;
       const response = await axios.post(`http://localhost:8081/api/users/${user?.id}/upgrade`, {
-        role: roleTarget.toUpperCase() // "DRIVER" ou "AGENCY"
+        role: roleTarget.toUpperCase()
       });
 
-      // On met à jour l'utilisateur dans le contexte (Simulé ici par un re-login)
-      // Idéalement, le backend renvoie le nouvel objet User mis à jour
       const updatedUser = response.data;
-      const token = localStorage.getItem("token") || "";
-
-      login(updatedUser); // Cela va rediriger automatiquement vers le bon dashboard grâce au AuthContext !
+      login(updatedUser);
 
     } catch (error) {
       alert("Erreur lors du changement de rôle");
@@ -37,6 +54,11 @@ export default function UpgradePage() {
           Vous êtes sur le point de passer votre compte en mode
           <span className="font-bold text-blue-600"> {roleTarget}</span>.
         </p>
+        {isMockMode() && (
+          <p className="text-xs text-orange-500 mb-4 bg-orange-50 p-2 rounded-lg">
+            🎭 Mode démo: Le changement sera simulé localement
+          </p>
+        )}
         <button
           onClick={handleUpgrade}
           className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700"
