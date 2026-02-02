@@ -91,7 +91,7 @@ export default function CarDetailsPage() {
             };
 
             const bookingPayload = {
-                carId: car.id,
+                car: { id: car.id },
                 userId: user.id,
                 driverId: withDriver ? selectedDriverId : null,
                 startDate: formatForJava(startDate),

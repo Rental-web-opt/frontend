@@ -109,15 +109,39 @@ export default function CarsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Mapping des données mockées au format attendu
-    const mappedCars = allCars.map((c: any) => ({
-      ...c,
-      pricePerDay: c.price,
-      fuelType: c.fuel,
-      isAvailable: true,
-      rating: 4.8
-    }));
-    setCars(mappedCars);
+    setLoading(true);
+    // Tenter de charger depuis le backend
+    import("@/services/api").then(({ carService }) => {
+      carService.getAll()
+        .then((res) => {
+          if (res.data && res.data.length > 0) {
+            // Adapt Backend data to Frontend model
+            const apiCars = res.data.map((c: any) => ({
+              ...c,
+              pricePerDay: c.pricePerDay,
+              monthlyPrice: c.monthlyPrice || (c.pricePerDay * 30 * 0.8), // Est. si manquant
+              image: c.image || "/assets/car1.jpeg",
+              rating: 4.8 // Default rating
+            }));
+            setCars(apiCars);
+          } else {
+            throw new Error("No cars in DB");
+          }
+        })
+        .catch((err) => {
+          console.warn("Backend non disponible ou vide, utilisation des mocks", err);
+          // Fallback Mocks
+          const mappedCars = allCars.map((c: any) => ({
+            ...c,
+            pricePerDay: c.price,
+            fuelType: c.fuel,
+            isAvailable: true,
+            rating: 4.8
+          }));
+          setCars(mappedCars);
+        })
+        .finally(() => setLoading(false));
+    });
   }, []);
 
   const filteredCars = cars.filter((car) => {

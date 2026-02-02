@@ -5,27 +5,17 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-
-  /* ----- MODIFICATION POLICES ----- */
   --font-sans: var(--font-inter);
-  /* Police par défaut (corps) */
   --font-title: var(--font-poppins);
-  /* Police pour les titres */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Force light mode to avoid gray text issues */
 body {
   background: var(--background);
   color: var(--foreground);
@@ -33,14 +23,33 @@ body {
 
 @layer base {
 
+  /* Renforcer la couleur du texte globalement */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-black;
+  }
+
+  p,
+  span,
+  div,
+  li,
+  a {
+    @apply text-slate-900;
+  }
+
+  /* Force Inputs black */
   input,
   textarea,
   select {
-    @apply !text-slate-900;
+    @apply !text-black !bg-white !border-slate-300;
   }
 
   input::placeholder,
   textarea::placeholder {
-    @apply !text-slate-400;
+    @apply !text-slate-500;
   }
 }
