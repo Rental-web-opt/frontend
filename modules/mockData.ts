@@ -1,0 +1,1342 @@
+// ============================================
+// 📦 DONNÉES MOCK COMPLÈTES POUR VERCEL
+// ============================================
+
+// Types
+export interface MockUser {
+    id: number;
+    fullName: string;
+    email: string;
+    phone: string;
+    role: "USER" | "ADMIN" | "AGENCY" | "DRIVER";
+    avatar?: string;
+    createdAt: string;
+}
+
+export interface MockAgency {
+    id: number;
+    name: string;
+    city: string;
+    location: string;
+    phone: string;
+    email: string;
+    rating: number;
+    reviewCount: number;
+    openingHours: string;
+    logo?: string;
+    coverImage?: string;
+    description: string;
+    tags: string[];
+}
+
+export interface MockCar {
+    id: number;
+    name: string;
+    brand: string;
+    type: string;
+    pricePerDay: number;
+    monthlyPrice?: number;
+    image: string;
+    images: string[];
+    available: boolean;
+    transmission: string;
+    fuelType: string;
+    seats: number;
+    doors: number;
+    maxSpeed?: number;
+    mileage: string;
+    color: string;
+    description: string;
+    location: string;
+    rating: number;
+    reviewCount: number;
+    agency: MockAgency;
+}
+
+export interface MockDriver {
+    id: number;
+    fullName: string;
+    name: string;
+    age: number;
+    experience: number;
+    location: string;
+    pricePerDay: number;
+    available: boolean;
+    licenseNumber: string;
+    image: string;
+    rating: number;
+    reviewCount: number;
+    bio: string;
+    phone: string;
+    email: string;
+    languages: string[];
+}
+
+export interface MockBooking {
+    id: number;
+    userId: number;
+    user: MockUser;
+    carId: number;
+    car: MockCar;
+    startDate: string;
+    endDate: string;
+    totalPrice: number;
+    status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+    createdAt: string;
+    paymentStatus: "PENDING" | "PAID" | "REFUNDED";
+}
+
+export interface MockNotification {
+    id: number;
+    userId: number;
+    title: string;
+    message: string;
+    type: "BOOKING" | "PAYMENT" | "SYSTEM" | "PROMO";
+    read: boolean;
+    createdAt: string;
+    data?: any;
+}
+
+export interface MockPayment {
+    id: number;
+    userId: number;
+    bookingId: number;
+    amount: number;
+    method: string;
+    status: "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED";
+    createdAt: string;
+}
+
+// ============================================
+// 👥 UTILISATEURS
+// ============================================
+
+export const mockUsers: MockUser[] = [
+    { id: 1, fullName: "Admin EasyRent", email: "admin@easyrent.cm", phone: "+237 699 000 001", role: "ADMIN", createdAt: "2024-01-01" },
+    { id: 2, fullName: "Jean-Pierre Kamga", email: "jp.kamga@gmail.com", phone: "+237 677 123 456", role: "USER", createdAt: "2024-06-15" },
+    { id: 3, fullName: "Marie-Claire Fouda", email: "mc.fouda@yahoo.fr", phone: "+237 655 987 654", role: "USER", createdAt: "2024-07-22" },
+    { id: 4, fullName: "AutoLux Manager", email: "contact@autolux.cm", phone: "+237 233 456 789", role: "AGENCY", createdAt: "2024-02-10" },
+    { id: 5, fullName: "Premium Cars Manager", email: "info@premiumcars.cm", phone: "+237 222 111 222", role: "AGENCY", createdAt: "2024-03-05" },
+    { id: 6, fullName: "Paul Biya (Chauffeur)", email: "paul.biya@driver.cm", phone: "+237 699 111 222", role: "DRIVER", createdAt: "2024-04-01" },
+    { id: 7, fullName: "Samuel Eto'o", email: "samuel.etoo@gmail.com", phone: "+237 677 999 888", role: "USER", createdAt: "2024-08-01" },
+    { id: 8, fullName: "Vanessa Paradis", email: "vanessa.p@hotmail.com", phone: "+237 655 444 333", role: "USER", createdAt: "2024-08-15" },
+    { id: 9, fullName: "Roger Milla", email: "roger.milla@legend.cm", phone: "+237 699 777 666", role: "USER", createdAt: "2024-09-01" },
+    { id: 10, fullName: "Elite Motors Manager", email: "contact@elitemotors.cm", phone: "+237 233 888 999", role: "AGENCY", createdAt: "2024-05-20" },
+    { id: 11, fullName: "Achille Webo", email: "achille.webo@gmail.com", phone: "+237 677 555 111", role: "USER", createdAt: "2024-09-10" },
+    { id: 12, fullName: "Gaëlle Enganamouit", email: "gaelle.e@yahoo.fr", phone: "+237 655 222 888", role: "USER", createdAt: "2024-09-15" },
+    { id: 13, fullName: "Patrick Mboma", email: "p.mboma@legend.cm", phone: "+237 699 333 444", role: "USER", createdAt: "2024-10-01" },
+    { id: 14, fullName: "Rigobert Song", email: "rigobert.song@gmail.com", phone: "+237 677 666 999", role: "USER", createdAt: "2024-10-10" },
+    { id: 15, fullName: "City Rent Manager", email: "cityrent@gmail.com", phone: "+237 233 444 555", role: "AGENCY", createdAt: "2024-06-01" },
+    { id: 16, fullName: "Franck Biya", email: "franck.b@hotmail.com", phone: "+237 655 777 888", role: "USER", createdAt: "2024-10-20" },
+    { id: 17, fullName: "Charlotte Dipanda", email: "charlotte.d@music.cm", phone: "+237 699 888 222", role: "USER", createdAt: "2024-11-01" },
+    { id: 18, fullName: "Manu Dibango Jr", email: "manu.jr@jazz.cm", phone: "+237 677 111 555", role: "USER", createdAt: "2024-11-10" },
+    { id: 19, fullName: "Express Auto Manager", email: "express@auto.cm", phone: "+237 233 999 111", role: "AGENCY", createdAt: "2024-07-15" },
+    { id: 20, fullName: "Lionel Manga", email: "lionel.manga@gmail.com", phone: "+237 655 333 666", role: "USER", createdAt: "2024-11-20" },
+];
+
+// ============================================
+// 🏢 AGENCES
+// ============================================
+
+export const mockAgencies: MockAgency[] = [
+    {
+        id: 1,
+        name: "AutoLux Douala",
+        city: "Douala",
+        location: "Bonanjo, Avenue de Gaulle",
+        phone: "+237 233 456 789",
+        email: "contact@autolux.cm",
+        rating: 4.8,
+        reviewCount: 145,
+        openingHours: "08h00 - 18h00",
+        description: "Leader de la location de véhicules de luxe au Cameroun depuis 2015. Nous offrons une flotte premium et un service client exceptionnel.",
+        tags: ["Premium", "SUV", "Luxe", "VIP"],
+    },
+    {
+        id: 2,
+        name: "Premium Cars Yaoundé",
+        city: "Yaoundé",
+        location: "Bastos, Rue 1072",
+        phone: "+237 222 111 222",
+        email: "info@premiumcars.cm",
+        rating: 4.5,
+        reviewCount: 98,
+        openingHours: "07h30 - 19h00",
+        description: "Votre partenaire mobilité dans la capitale. Large gamme de véhicules pour tous vos besoins professionnels et personnels.",
+        tags: ["Business", "Familial", "Économique"],
+    },
+    {
+        id: 3,
+        name: "Elite Motors Kribi",
+        city: "Kribi",
+        location: "Centre-ville, près du port",
+        phone: "+237 233 888 999",
+        email: "contact@elitemotors.cm",
+        rating: 4.6,
+        reviewCount: 67,
+        openingHours: "08h00 - 17h00",
+        description: "Spécialiste de la location touristique. Parfait pour explorer les plages et la région du Sud.",
+        tags: ["Tourisme", "4x4", "Plage"],
+    },
+    {
+        id: 4,
+        name: "City Rent Bafoussam",
+        city: "Bafoussam",
+        location: "Quartier Administratif",
+        phone: "+237 233 444 555",
+        email: "cityrent@gmail.com",
+        rating: 4.3,
+        reviewCount: 42,
+        openingHours: "08h00 - 18h00",
+        description: "Location de véhicules pour l'Ouest Cameroun. Idéal pour les voyages d'affaires et le tourisme local.",
+        tags: ["Économique", "Pickup", "Montagne"],
+    },
+    {
+        id: 5,
+        name: "Express Auto Limbé",
+        city: "Limbé",
+        location: "Mile 4, Beach Road",
+        phone: "+237 233 999 111",
+        email: "express@auto.cm",
+        rating: 4.4,
+        reviewCount: 38,
+        openingHours: "07h00 - 19h00",
+        description: "Spécialiste de la location côtière. Véhicules adaptés aux routes de montagne et plages.",
+        tags: ["Plage", "4x4", "Tourisme"],
+    },
+    {
+        id: 6,
+        name: "Royal Cars Garoua",
+        city: "Garoua",
+        location: "Centre Commercial, Avenue Kennedy",
+        phone: "+237 222 333 444",
+        email: "royal@cars.cm",
+        rating: 4.2,
+        reviewCount: 29,
+        openingHours: "08h00 - 17h00",
+        description: "Leader de la location dans le Grand Nord. Véhicules robustes pour le safari et le tourisme.",
+        tags: ["Safari", "4x4", "Aventure"],
+    },
+    {
+        id: 7,
+        name: "Safari Motors Maroua",
+        city: "Maroua",
+        location: "Quartier Administratif",
+        phone: "+237 222 555 666",
+        email: "safari@motors.cm",
+        rating: 4.1,
+        reviewCount: 22,
+        openingHours: "07h30 - 17h30",
+        description: "Explorez l'Extrême-Nord avec nos véhicules tout-terrain. Partenaire du Parc de Waza.",
+        tags: ["Safari", "Extrême-Nord", "Nature"],
+    },
+    {
+        id: 8,
+        name: "Coastal Wheels Buea",
+        city: "Buea",
+        location: "Molyko, près de l'Université",
+        phone: "+237 233 777 888",
+        email: "coastal@wheels.cm",
+        rating: 4.5,
+        reviewCount: 45,
+        openingHours: "08h00 - 18h00",
+        description: "Location pour étudiants et professionnels. Tarifs compétitifs, véhicules récents.",
+        tags: ["Économique", "Étudiant", "Montagne"],
+    },
+];
+
+// ============================================
+// 🚗 VÉHICULES (FLOTTE COMPLÈTE)
+// ============================================
+
+export const mockCars: MockCar[] = [
+    // AutoLux Douala (Agency 1)
+    {
+        id: 1,
+        name: "Mercedes GLE 450",
+        brand: "Mercedes-Benz",
+        type: "SUV",
+        pricePerDay: 75000,
+        monthlyPrice: 1800000,
+        image: "/assets/mercedes gle.webp",
+        images: ["/assets/mercedes gle.webp", "/assets/car6.png"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Hybride",
+        seats: 5,
+        doors: 5,
+        maxSpeed: 250,
+        mileage: "12 000 km",
+        color: "Noir",
+        description: "SUV premium avec finitions luxueuses et technologie de pointe.",
+        location: "Douala, Bonanjo",
+        rating: 4.9,
+        reviewCount: 28,
+        agency: mockAgencies[0],
+    },
+    {
+        id: 2,
+        name: "Toyota Land Cruiser V8",
+        brand: "Toyota",
+        type: "SUV",
+        pricePerDay: 85000,
+        monthlyPrice: 2000000,
+        image: "/assets/fortuner.jpg",
+        images: ["/assets/fortuner.jpg"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Diesel",
+        seats: 7,
+        doors: 5,
+        maxSpeed: 200,
+        mileage: "45 000 km",
+        color: "Blanc",
+        description: "Le roi des SUV. Parfait pour les longs trajets et les routes difficiles.",
+        location: "Douala, Akwa",
+        rating: 4.8,
+        reviewCount: 45,
+        agency: mockAgencies[0],
+    },
+    {
+        id: 3,
+        name: "Range Rover Sport",
+        brand: "Land Rover",
+        type: "SUV Premium",
+        pricePerDay: 120000,
+        monthlyPrice: 2800000,
+        image: "/assets/car1.jpeg",
+        images: ["/assets/car1.jpeg", "/assets/car2.jpeg"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Essence",
+        seats: 5,
+        doors: 5,
+        maxSpeed: 240,
+        mileage: "18 000 km",
+        color: "Gris Métallisé",
+        description: "L'alliance parfaite entre luxe et performance tout-terrain.",
+        location: "Douala, Bonapriso",
+        rating: 5.0,
+        reviewCount: 19,
+        agency: mockAgencies[0],
+    },
+    {
+        id: 4,
+        name: "Audi Q7",
+        brand: "Audi",
+        type: "SUV",
+        pricePerDay: 95000,
+        monthlyPrice: 2200000,
+        image: "/assets/car3.jpeg",
+        images: ["/assets/car3.jpeg"],
+        available: false,
+        transmission: "Automatique",
+        fuelType: "Diesel",
+        seats: 7,
+        doors: 5,
+        maxSpeed: 250,
+        mileage: "32 000 km",
+        color: "Bleu Nuit",
+        description: "SUV familial avec un confort exceptionnel et une finition haut de gamme.",
+        location: "Douala, Bonanjo",
+        rating: 4.7,
+        reviewCount: 12,
+        agency: mockAgencies[0],
+    },
+
+    // Premium Cars Yaoundé (Agency 2)
+    {
+        id: 5,
+        name: "Toyota Camry",
+        brand: "Toyota",
+        type: "Berline",
+        pricePerDay: 45000,
+        monthlyPrice: 1000000,
+        image: "/assets/car4.jpeg",
+        images: ["/assets/car4.jpeg"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Essence",
+        seats: 5,
+        doors: 4,
+        maxSpeed: 210,
+        mileage: "28 000 km",
+        color: "Argent",
+        description: "Berline fiable et confortable pour vos déplacements professionnels.",
+        location: "Yaoundé, Bastos",
+        rating: 4.5,
+        reviewCount: 34,
+        agency: mockAgencies[1],
+    },
+    {
+        id: 6,
+        name: "Honda Accord",
+        brand: "Honda",
+        type: "Berline",
+        pricePerDay: 40000,
+        monthlyPrice: 900000,
+        image: "/assets/car5.png",
+        images: ["/assets/car5.png"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Essence",
+        seats: 5,
+        doors: 4,
+        maxSpeed: 200,
+        mileage: "42 000 km",
+        color: "Noir",
+        description: "Économique et élégante, idéale pour la ville.",
+        location: "Yaoundé, Centre-ville",
+        rating: 4.4,
+        reviewCount: 21,
+        agency: mockAgencies[1],
+    },
+    {
+        id: 7,
+        name: "Mercedes Classe S",
+        brand: "Mercedes-Benz",
+        type: "Luxe",
+        pricePerDay: 150000,
+        monthlyPrice: 3500000,
+        image: "/assets/car6.png",
+        images: ["/assets/car6.png"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Essence",
+        seats: 5,
+        doors: 4,
+        maxSpeed: 260,
+        mileage: "8 000 km",
+        color: "Noir Obsidienne",
+        description: "Le summum du luxe automobile. Pour vos événements VIP.",
+        location: "Yaoundé, Bastos",
+        rating: 5.0,
+        reviewCount: 8,
+        agency: mockAgencies[1],
+    },
+    {
+        id: 8,
+        name: "Toyota Corolla",
+        brand: "Toyota",
+        type: "Berline",
+        pricePerDay: 35000,
+        monthlyPrice: 800000,
+        image: "/assets/car1.jpeg",
+        images: ["/assets/car1.jpeg"],
+        available: true,
+        transmission: "Manuelle",
+        fuelType: "Essence",
+        seats: 5,
+        doors: 4,
+        maxSpeed: 180,
+        mileage: "65 000 km",
+        color: "Blanc",
+        description: "La référence des berlines compactes. Fiable et économique.",
+        location: "Yaoundé, Mvan",
+        rating: 4.3,
+        reviewCount: 56,
+        agency: mockAgencies[1],
+    },
+
+    // Elite Motors Kribi (Agency 3)
+    {
+        id: 9,
+        name: "Jeep Wrangler",
+        brand: "Jeep",
+        type: "4x4",
+        pricePerDay: 65000,
+        monthlyPrice: 1500000,
+        image: "/assets/car2.jpeg",
+        images: ["/assets/car2.jpeg"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Essence",
+        seats: 4,
+        doors: 4,
+        maxSpeed: 180,
+        mileage: "35 000 km",
+        color: "Vert Militaire",
+        description: "L'aventure vous attend ! Parfait pour explorer les plages de Kribi.",
+        location: "Kribi, Centre",
+        rating: 4.6,
+        reviewCount: 23,
+        agency: mockAgencies[2],
+    },
+    {
+        id: 10,
+        name: "Ford Ranger",
+        brand: "Ford",
+        type: "Pickup",
+        pricePerDay: 55000,
+        monthlyPrice: 1300000,
+        image: "/assets/car3.jpeg",
+        images: ["/assets/car3.jpeg"],
+        available: true,
+        transmission: "Manuelle",
+        fuelType: "Diesel",
+        seats: 5,
+        doors: 4,
+        maxSpeed: 170,
+        mileage: "52 000 km",
+        color: "Orange",
+        description: "Pickup robuste pour tous vos besoins de transport.",
+        location: "Kribi, Port",
+        rating: 4.4,
+        reviewCount: 17,
+        agency: mockAgencies[2],
+    },
+    {
+        id: 11,
+        name: "Suzuki Jimny",
+        brand: "Suzuki",
+        type: "4x4 Compact",
+        pricePerDay: 40000,
+        monthlyPrice: 950000,
+        image: "/assets/car4.jpeg",
+        images: ["/assets/car4.jpeg"],
+        available: true,
+        transmission: "Manuelle",
+        fuelType: "Essence",
+        seats: 4,
+        doors: 3,
+        maxSpeed: 160,
+        mileage: "15 000 km",
+        color: "Jaune",
+        description: "Compact mais costaud ! Idéal pour les petites escapades.",
+        location: "Kribi, Plage",
+        rating: 4.7,
+        reviewCount: 31,
+        agency: mockAgencies[2],
+    },
+
+    // City Rent Bafoussam (Agency 4)
+    {
+        id: 12,
+        name: "Nissan Patrol",
+        brand: "Nissan",
+        type: "SUV",
+        pricePerDay: 70000,
+        monthlyPrice: 1600000,
+        image: "/assets/car5.png",
+        images: ["/assets/car5.png"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Diesel",
+        seats: 7,
+        doors: 5,
+        maxSpeed: 190,
+        mileage: "78 000 km",
+        color: "Gris",
+        description: "SUV robuste pour les routes de l'Ouest camerounais.",
+        location: "Bafoussam, Centre",
+        rating: 4.2,
+        reviewCount: 14,
+        agency: mockAgencies[3],
+    },
+    {
+        id: 13,
+        name: "Hilux Double Cabine",
+        brand: "Toyota",
+        type: "Pickup",
+        pricePerDay: 50000,
+        monthlyPrice: 1200000,
+        image: "/assets/car6.png",
+        images: ["/assets/car6.png"],
+        available: true,
+        transmission: "Manuelle",
+        fuelType: "Diesel",
+        seats: 5,
+        doors: 4,
+        maxSpeed: 165,
+        mileage: "89 000 km",
+        color: "Blanc",
+        description: "Le pickup indestructible. Parfait pour les chantiers et le transport.",
+        location: "Bafoussam, Zone Industrielle",
+        rating: 4.5,
+        reviewCount: 27,
+        agency: mockAgencies[3],
+    },
+
+    // Véhicules spéciaux
+    {
+        id: 14,
+        name: "Limousine Lincoln",
+        brand: "Lincoln",
+        type: "Luxe VIP",
+        pricePerDay: 250000,
+        image: "/assets/limousine.jpg",
+        images: ["/assets/limousine.jpg"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Essence",
+        seats: 8,
+        doors: 4,
+        maxSpeed: 180,
+        mileage: "15 000 km",
+        color: "Blanc",
+        description: "Pour vos mariages et événements exceptionnels.",
+        location: "Douala, Bonapriso",
+        rating: 5.0,
+        reviewCount: 12,
+        agency: mockAgencies[0],
+    },
+    {
+        id: 15,
+        name: "KTM Moto Cross 250",
+        brand: "KTM",
+        type: "Moto",
+        pricePerDay: 25000,
+        image: "/assets/motocross.jpeg",
+        images: ["/assets/motocross.jpeg"],
+        available: true,
+        transmission: "Manuelle",
+        fuelType: "Essence",
+        seats: 1,
+        doors: 0,
+        maxSpeed: 140,
+        mileage: "5 000 km",
+        color: "Orange",
+        description: "Pour les amateurs de sensations fortes !",
+        location: "Kribi, Plage",
+        rating: 4.3,
+        reviewCount: 8,
+        agency: mockAgencies[2],
+    },
+    {
+        id: 16,
+        name: "Yamaha Quad Raptor",
+        brand: "Yamaha",
+        type: "Quad",
+        pricePerDay: 35000,
+        image: "/assets/quad.png",
+        images: ["/assets/quad.png"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Essence",
+        seats: 2,
+        doors: 0,
+        maxSpeed: 100,
+        mileage: "2 500 km",
+        color: "Noir",
+        description: "Parfait pour des balades sur la plage ou en forêt.",
+        location: "Kribi, Centre",
+        rating: 4.5,
+        reviewCount: 19,
+        agency: mockAgencies[2],
+    },
+    // Express Auto Limbé (Agency 5)
+    {
+        id: 17,
+        name: "Mitsubishi Pajero",
+        brand: "Mitsubishi",
+        type: "4x4",
+        pricePerDay: 60000,
+        image: "/assets/car1.jpeg",
+        images: ["/assets/car1.jpeg"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Diesel",
+        seats: 7,
+        doors: 5,
+        maxSpeed: 180,
+        mileage: "55 000 km",
+        color: "Gris",
+        description: "4x4 puissant pour les routes de montagne vers le Mont Cameroun.",
+        location: "Limbé, Mile 4",
+        rating: 4.4,
+        reviewCount: 22,
+        agency: mockAgencies[4],
+    },
+    {
+        id: 18,
+        name: "Toyota RAV4 Hybrid",
+        brand: "Toyota",
+        type: "SUV Compact",
+        pricePerDay: 55000,
+        image: "/assets/car2.jpeg",
+        images: ["/assets/car2.jpeg"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Hybride",
+        seats: 5,
+        doors: 5,
+        maxSpeed: 190,
+        mileage: "20 000 km",
+        color: "Bleu",
+        description: "SUV écologique parfait pour explorer la côte.",
+        location: "Limbé, Beach Road",
+        rating: 4.6,
+        reviewCount: 18,
+        agency: mockAgencies[4],
+    },
+    // Royal Cars Garoua (Agency 6)
+    {
+        id: 19,
+        name: "Toyota Prado",
+        brand: "Toyota",
+        type: "4x4",
+        pricePerDay: 80000,
+        image: "/assets/car3.jpeg",
+        images: ["/assets/car3.jpeg"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Diesel",
+        seats: 7,
+        doors: 5,
+        maxSpeed: 180,
+        mileage: "68 000 km",
+        color: "Blanc",
+        description: "Le choix parfait pour les safaris dans le parc de la Bénoué.",
+        location: "Garoua, Centre",
+        rating: 4.5,
+        reviewCount: 31,
+        agency: mockAgencies[5],
+    },
+    {
+        id: 20,
+        name: "Land Rover Defender",
+        brand: "Land Rover",
+        type: "4x4 Aventure",
+        pricePerDay: 90000,
+        image: "/assets/car4.jpeg",
+        images: ["/assets/car4.jpeg"],
+        available: true,
+        transmission: "Manuelle",
+        fuelType: "Diesel",
+        seats: 5,
+        doors: 5,
+        maxSpeed: 160,
+        mileage: "45 000 km",
+        color: "Vert Jungle",
+        description: "L'icône de l'aventure africaine. Indestructible.",
+        location: "Garoua, Safari Zone",
+        rating: 4.8,
+        reviewCount: 15,
+        agency: mockAgencies[5],
+    },
+    // Safari Motors Maroua (Agency 7)
+    {
+        id: 21,
+        name: "Nissan Navara",
+        brand: "Nissan",
+        type: "Pickup",
+        pricePerDay: 50000,
+        image: "/assets/car5.png",
+        images: ["/assets/car5.png"],
+        available: true,
+        transmission: "Manuelle",
+        fuelType: "Diesel",
+        seats: 5,
+        doors: 4,
+        maxSpeed: 170,
+        mileage: "72 000 km",
+        color: "Rouge",
+        description: "Pickup robuste pour les pistes du parc de Waza.",
+        location: "Maroua, Centre",
+        rating: 4.3,
+        reviewCount: 12,
+        agency: mockAgencies[6],
+    },
+    {
+        id: 22,
+        name: "Isuzu D-Max",
+        brand: "Isuzu",
+        type: "Pickup",
+        pricePerDay: 45000,
+        image: "/assets/car6.png",
+        images: ["/assets/car6.png"],
+        available: true,
+        transmission: "Manuelle",
+        fuelType: "Diesel",
+        seats: 5,
+        doors: 4,
+        maxSpeed: 165,
+        mileage: "85 000 km",
+        color: "Blanc",
+        description: "Fiable et économique pour les longues distances.",
+        location: "Maroua, Nord",
+        rating: 4.2,
+        reviewCount: 19,
+        agency: mockAgencies[6],
+    },
+    // Coastal Wheels Buea (Agency 8)
+    {
+        id: 23,
+        name: "Hyundai Tucson",
+        brand: "Hyundai",
+        type: "SUV",
+        pricePerDay: 45000,
+        image: "/assets/car1.jpeg",
+        images: ["/assets/car1.jpeg"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Essence",
+        seats: 5,
+        doors: 5,
+        maxSpeed: 195,
+        mileage: "25 000 km",
+        color: "Gris Titanium",
+        description: "SUV moderne et confortable pour étudiants et jeunes pros.",
+        location: "Buea, Molyko",
+        rating: 4.5,
+        reviewCount: 28,
+        agency: mockAgencies[7],
+    },
+    {
+        id: 24,
+        name: "Kia Sportage",
+        brand: "Kia",
+        type: "SUV Compact",
+        pricePerDay: 40000,
+        image: "/assets/car2.jpeg",
+        images: ["/assets/car2.jpeg"],
+        available: true,
+        transmission: "Automatique",
+        fuelType: "Essence",
+        seats: 5,
+        doors: 5,
+        maxSpeed: 190,
+        mileage: "30 000 km",
+        color: "Noir",
+        description: "Rapport qualité-prix imbattable. Parfait pour le quotidien.",
+        location: "Buea, Great Soppo",
+        rating: 4.4,
+        reviewCount: 35,
+        agency: mockAgencies[7],
+    },
+];
+
+// ============================================
+// 🧑‍✈️ CHAUFFEURS
+// ============================================
+
+export const mockDrivers: MockDriver[] = [
+    {
+        id: 1,
+        fullName: "Paul Mbarga",
+        name: "Paul Mbarga",
+        age: 45,
+        experience: 18,
+        location: "Yaoundé",
+        pricePerDay: 25000,
+        available: true,
+        licenseNumber: "YDE-2006-0451",
+        image: "/assets/default-avatar.jpeg",
+        rating: 4.9,
+        reviewCount: 87,
+        bio: "Chauffeur professionnel depuis 18 ans. Spécialisé dans les trajets VIP et les voyages longue distance. Je connais toutes les routes du Cameroun.",
+        phone: "+237 699 111 222",
+        email: "paul.mbarga@driver.cm",
+        languages: ["Français", "Anglais", "Ewondo"],
+    },
+    {
+        id: 2,
+        fullName: "Jean Makoun",
+        name: "Jean Makoun",
+        age: 38,
+        experience: 12,
+        location: "Douala",
+        pricePerDay: 22000,
+        available: true,
+        licenseNumber: "DLA-2012-0892",
+        image: "/assets/default-avatar.jpeg",
+        rating: 4.7,
+        reviewCount: 54,
+        bio: "Expert des routes de Douala et de la région littorale. Ponctuel et professionnel. Je parle couramment 3 langues.",
+        phone: "+237 677 333 444",
+        email: "jean.makoun@driver.cm",
+        languages: ["Français", "Anglais", "Douala"],
+    },
+    {
+        id: 3,
+        fullName: "Marie-Noëlle Tchoua",
+        name: "Marie-Noëlle Tchoua",
+        age: 35,
+        experience: 10,
+        location: "Yaoundé",
+        pricePerDay: 20000,
+        available: true,
+        licenseNumber: "YDE-2014-1234",
+        image: "/assets/default-avatar.jpeg",
+        rating: 4.8,
+        reviewCount: 42,
+        bio: "Première femme chauffeur VIP de la région. Je propose un service premium avec attention aux détails.",
+        phone: "+237 655 555 666",
+        email: "marie.tchoua@driver.cm",
+        languages: ["Français", "Anglais"],
+    },
+    {
+        id: 4,
+        fullName: "Emmanuel Njoya",
+        name: "Emmanuel Njoya",
+        age: 52,
+        experience: 25,
+        location: "Bafoussam",
+        pricePerDay: 18000,
+        available: true,
+        licenseNumber: "BFS-1999-0231",
+        image: "/assets/default-avatar.jpeg",
+        rating: 4.6,
+        reviewCount: 98,
+        bio: "Le doyen des chauffeurs de l'Ouest. Je connais chaque route, chaque village. Voyagez en toute sérénité.",
+        phone: "+237 699 777 888",
+        email: "emmanuel.njoya@driver.cm",
+        languages: ["Français", "Ghomala", "Pidgin"],
+    },
+    {
+        id: 5,
+        fullName: "Hervé Billong",
+        name: "Hervé Billong",
+        age: 29,
+        experience: 6,
+        location: "Kribi",
+        pricePerDay: 15000,
+        available: true,
+        licenseNumber: "KBI-2018-0567",
+        image: "/assets/default-avatar.jpeg",
+        rating: 4.5,
+        reviewCount: 23,
+        bio: "Jeune et dynamique ! Spécialisé dans les circuits touristiques de Kribi et du Sud.",
+        phone: "+237 677 999 000",
+        email: "herve.billong@driver.cm",
+        languages: ["Français", "Anglais", "Espagnol"],
+    },
+];
+
+// ============================================
+// 📅 RÉSERVATIONS
+// ============================================
+
+export const mockBookings: MockBooking[] = [
+    {
+        id: 1,
+        userId: 2,
+        user: mockUsers[1],
+        carId: 1,
+        car: mockCars[0],
+        startDate: "2026-02-05",
+        endDate: "2026-02-08",
+        totalPrice: 225000,
+        status: "CONFIRMED",
+        createdAt: "2026-02-01T10:30:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 2,
+        userId: 3,
+        user: mockUsers[2],
+        carId: 5,
+        car: mockCars[4],
+        startDate: "2026-02-10",
+        endDate: "2026-02-15",
+        totalPrice: 225000,
+        status: "PENDING",
+        createdAt: "2026-02-01T14:45:00",
+        paymentStatus: "PENDING",
+    },
+    {
+        id: 3,
+        userId: 7,
+        user: mockUsers[6],
+        carId: 3,
+        car: mockCars[2],
+        startDate: "2026-02-03",
+        endDate: "2026-02-04",
+        totalPrice: 120000,
+        status: "COMPLETED",
+        createdAt: "2026-01-28T09:00:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 4,
+        userId: 8,
+        user: mockUsers[7],
+        carId: 9,
+        car: mockCars[8],
+        startDate: "2026-02-12",
+        endDate: "2026-02-14",
+        totalPrice: 130000,
+        status: "CONFIRMED",
+        createdAt: "2026-02-01T16:20:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 5,
+        userId: 9,
+        user: mockUsers[8],
+        carId: 14,
+        car: mockCars[13],
+        startDate: "2026-02-20",
+        endDate: "2026-02-20",
+        totalPrice: 250000,
+        status: "CONFIRMED",
+        createdAt: "2026-02-02T08:00:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 6,
+        userId: 2,
+        user: mockUsers[1],
+        carId: 7,
+        car: mockCars[6],
+        startDate: "2026-01-15",
+        endDate: "2026-01-18",
+        totalPrice: 450000,
+        status: "COMPLETED",
+        createdAt: "2026-01-10T11:30:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 7,
+        userId: 3,
+        user: mockUsers[2],
+        carId: 11,
+        car: mockCars[10],
+        startDate: "2026-02-25",
+        endDate: "2026-02-28",
+        totalPrice: 120000,
+        status: "PENDING",
+        createdAt: "2026-02-02T10:15:00",
+        paymentStatus: "PENDING",
+    },
+    {
+        id: 8,
+        userId: 11,
+        user: mockUsers[10],
+        carId: 17,
+        car: mockCars[16],
+        startDate: "2026-02-06",
+        endDate: "2026-02-09",
+        totalPrice: 180000,
+        status: "CONFIRMED",
+        createdAt: "2026-02-02T11:00:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 9,
+        userId: 12,
+        user: mockUsers[11],
+        carId: 19,
+        car: mockCars[18],
+        startDate: "2026-02-15",
+        endDate: "2026-02-18",
+        totalPrice: 240000,
+        status: "CONFIRMED",
+        createdAt: "2026-02-02T12:30:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 10,
+        userId: 13,
+        user: mockUsers[12],
+        carId: 2,
+        car: mockCars[1],
+        startDate: "2026-01-20",
+        endDate: "2026-01-25",
+        totalPrice: 425000,
+        status: "COMPLETED",
+        createdAt: "2026-01-18T09:00:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 11,
+        userId: 14,
+        user: mockUsers[13],
+        carId: 23,
+        car: mockCars[22],
+        startDate: "2026-02-08",
+        endDate: "2026-02-10",
+        totalPrice: 90000,
+        status: "CONFIRMED",
+        createdAt: "2026-02-02T14:00:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 12,
+        userId: 16,
+        user: mockUsers[15],
+        carId: 6,
+        car: mockCars[5],
+        startDate: "2026-02-22",
+        endDate: "2026-02-24",
+        totalPrice: 80000,
+        status: "PENDING",
+        createdAt: "2026-02-02T15:30:00",
+        paymentStatus: "PENDING",
+    },
+    {
+        id: 13,
+        userId: 17,
+        user: mockUsers[16],
+        carId: 7,
+        car: mockCars[6],
+        startDate: "2026-02-14",
+        endDate: "2026-02-14",
+        totalPrice: 150000,
+        status: "CONFIRMED",
+        createdAt: "2026-02-02T16:00:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 14,
+        userId: 18,
+        user: mockUsers[17],
+        carId: 20,
+        car: mockCars[19],
+        startDate: "2026-03-01",
+        endDate: "2026-03-05",
+        totalPrice: 450000,
+        status: "PENDING",
+        createdAt: "2026-02-02T17:00:00",
+        paymentStatus: "PENDING",
+    },
+    {
+        id: 15,
+        userId: 20,
+        user: mockUsers[19],
+        carId: 24,
+        car: mockCars[23],
+        startDate: "2026-02-11",
+        endDate: "2026-02-13",
+        totalPrice: 80000,
+        status: "CONFIRMED",
+        createdAt: "2026-02-02T18:00:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 16,
+        userId: 11,
+        user: mockUsers[10],
+        carId: 10,
+        car: mockCars[9],
+        startDate: "2026-01-05",
+        endDate: "2026-01-08",
+        totalPrice: 165000,
+        status: "COMPLETED",
+        createdAt: "2026-01-03T10:00:00",
+        paymentStatus: "PAID",
+    },
+    {
+        id: 17,
+        userId: 12,
+        user: mockUsers[11],
+        carId: 21,
+        car: mockCars[20],
+        startDate: "2026-03-10",
+        endDate: "2026-03-15",
+        totalPrice: 250000,
+        status: "PENDING",
+        createdAt: "2026-02-02T19:00:00",
+        paymentStatus: "PENDING",
+    },
+];
+
+// ============================================
+// 💳 PAIEMENTS
+// ============================================
+
+export const mockPayments: MockPayment[] = [
+    { id: 1, userId: 2, bookingId: 1, amount: 225000, method: "Mobile Money", status: "COMPLETED", createdAt: "2026-02-01T10:35:00" },
+    { id: 2, userId: 7, bookingId: 3, amount: 120000, method: "Carte Bancaire", status: "COMPLETED", createdAt: "2026-01-28T09:05:00" },
+    { id: 3, userId: 8, bookingId: 4, amount: 130000, method: "Orange Money", status: "COMPLETED", createdAt: "2026-02-01T16:25:00" },
+    { id: 4, userId: 9, bookingId: 5, amount: 250000, method: "Virement", status: "COMPLETED", createdAt: "2026-02-02T08:10:00" },
+    { id: 5, userId: 2, bookingId: 6, amount: 450000, method: "Mobile Money", status: "COMPLETED", createdAt: "2026-01-10T11:45:00" },
+    { id: 6, userId: 11, bookingId: 8, amount: 180000, method: "MTN MoMo", status: "COMPLETED", createdAt: "2026-02-02T11:05:00" },
+    { id: 7, userId: 12, bookingId: 9, amount: 240000, method: "Carte Bancaire", status: "COMPLETED", createdAt: "2026-02-02T12:35:00" },
+    { id: 8, userId: 13, bookingId: 10, amount: 425000, method: "Virement", status: "COMPLETED", createdAt: "2026-01-18T09:10:00" },
+    { id: 9, userId: 14, bookingId: 11, amount: 90000, method: "Orange Money", status: "COMPLETED", createdAt: "2026-02-02T14:05:00" },
+    { id: 10, userId: 17, bookingId: 13, amount: 150000, method: "Mobile Money", status: "COMPLETED", createdAt: "2026-02-02T16:05:00" },
+    { id: 11, userId: 20, bookingId: 15, amount: 80000, method: "MTN MoMo", status: "COMPLETED", createdAt: "2026-02-02T18:05:00" },
+    { id: 12, userId: 11, bookingId: 16, amount: 165000, method: "Carte Bancaire", status: "COMPLETED", createdAt: "2026-01-03T10:10:00" },
+];
+
+// ============================================
+// 🔔 NOTIFICATIONS
+// ============================================
+
+export const mockNotifications: MockNotification[] = [
+    // Notifications Utilisateur (userId: 2 - Jean-Pierre)
+    {
+        id: 1,
+        userId: 2,
+        title: "Réservation confirmée ✅",
+        message: "Votre réservation de la Mercedes GLE 450 du 05/02 au 08/02 a été confirmée. Montant: 225 000 CFA",
+        type: "BOOKING",
+        read: false,
+        createdAt: "2026-02-01T10:35:00",
+        data: { bookingId: 1, carId: 1 },
+    },
+    {
+        id: 2,
+        userId: 2,
+        title: "Paiement reçu 💳",
+        message: "Nous avons bien reçu votre paiement de 225 000 CFA via Mobile Money.",
+        type: "PAYMENT",
+        read: true,
+        createdAt: "2026-02-01T10:36:00",
+        data: { paymentId: 1 },
+    },
+
+    // Notifications Agence (userId: 4 - AutoLux Manager)
+    {
+        id: 3,
+        userId: 4,
+        title: "Nouvelle réservation 🚗",
+        message: "Jean-Pierre Kamga a réservé la Mercedes GLE 450 du 05/02 au 08/02. Veuillez préparer le véhicule.",
+        type: "BOOKING",
+        read: false,
+        createdAt: "2026-02-01T10:31:00",
+        data: { bookingId: 1, userId: 2, carId: 1 },
+    },
+    {
+        id: 4,
+        userId: 4,
+        title: "Réservation complétée 🎉",
+        message: "Samuel Eto'o a terminé sa location du Range Rover Sport. Véhicule retourné avec succès.",
+        type: "BOOKING",
+        read: true,
+        createdAt: "2026-02-03T18:00:00",
+        data: { bookingId: 3 },
+    },
+
+    // Notifications Admin (userId: 1)
+    {
+        id: 5,
+        userId: 1,
+        title: "Nouvelle réservation sur la plateforme",
+        message: "Jean-Pierre Kamga a réservé Mercedes GLE 450 chez AutoLux Douala (225 000 CFA)",
+        type: "BOOKING",
+        read: false,
+        createdAt: "2026-02-01T10:31:00",
+        data: { bookingId: 1, agencyId: 1 },
+    },
+    {
+        id: 6,
+        userId: 1,
+        title: "Nouvelle réservation sur la plateforme",
+        message: "Marie-Claire Fouda a réservé Toyota Camry chez Premium Cars Yaoundé (225 000 CFA)",
+        type: "BOOKING",
+        read: false,
+        createdAt: "2026-02-01T14:46:00",
+        data: { bookingId: 2, agencyId: 2 },
+    },
+    {
+        id: 7,
+        userId: 1,
+        title: "Réservation VIP confirmée 👑",
+        message: "Roger Milla a réservé la Limousine Lincoln pour un mariage le 20/02 (250 000 CFA)",
+        type: "BOOKING",
+        read: false,
+        createdAt: "2026-02-02T08:01:00",
+        data: { bookingId: 5, agencyId: 1 },
+    },
+    {
+        id: 8,
+        userId: 1,
+        title: "Rapport hebdomadaire 📊",
+        message: "Cette semaine: 7 réservations, 1 200 000 CFA de revenus. +15% vs semaine dernière !",
+        type: "SYSTEM",
+        read: true,
+        createdAt: "2026-02-02T00:00:00",
+    },
+
+    // Notifications promotionnelles
+    {
+        id: 9,
+        userId: 2,
+        title: "Offre spéciale Saint-Valentin 💝",
+        message: "-20% sur toutes les berlines de luxe du 14 au 16 février ! Code: LOVE2026",
+        type: "PROMO",
+        read: false,
+        createdAt: "2026-02-01T12:00:00",
+    },
+    {
+        id: 10,
+        userId: 3,
+        title: "Offre spéciale Saint-Valentin 💝",
+        message: "-20% sur toutes les berlines de luxe du 14 au 16 février ! Code: LOVE2026",
+        type: "PROMO",
+        read: false,
+        createdAt: "2026-02-01T12:00:00",
+    },
+];
+
+// ============================================
+// 📊 STATISTIQUES ADMIN
+// ============================================
+
+export const mockAdminStats = {
+    totalRevenue: 3_055_000,
+    totalBookings: mockBookings.length,
+    totalUsers: mockUsers.filter(u => u.role === "USER").length,
+    totalAgencies: mockAgencies.length,
+    totalCars: mockCars.length,
+    totalDrivers: mockDrivers.length,
+
+    // Revenus par agence
+    revenueByAgency: [
+        { agencyId: 1, agencyName: "AutoLux Douala", revenue: 1_095_000, bookings: 6, cars: 5 },
+        { agencyId: 2, agencyName: "Premium Cars Yaoundé", revenue: 680_000, bookings: 4, cars: 4 },
+        { agencyId: 3, agencyName: "Elite Motors Kribi", revenue: 295_000, bookings: 2, cars: 5 },
+        { agencyId: 4, agencyName: "City Rent Bafoussam", revenue: 165_000, bookings: 1, cars: 2 },
+        { agencyId: 5, agencyName: "Express Auto Limbé", revenue: 180_000, bookings: 1, cars: 2 },
+        { agencyId: 6, agencyName: "Royal Cars Garoua", revenue: 690_000, bookings: 2, cars: 2 },
+        { agencyId: 7, agencyName: "Safari Motors Maroua", revenue: 250_000, bookings: 1, cars: 2 },
+        { agencyId: 8, agencyName: "Coastal Wheels Buea", revenue: 170_000, bookings: 2, cars: 2 },
+    ],
+
+    // Répartition véhicules
+    carsByAgency: [
+        { agencyId: 1, count: 5 },
+        { agencyId: 2, count: 4 },
+        { agencyId: 3, count: 5 },
+        { agencyId: 4, count: 2 },
+        { agencyId: 5, count: 2 },
+        { agencyId: 6, count: 2 },
+        { agencyId: 7, count: 2 },
+        { agencyId: 8, count: 2 },
+    ],
+
+    // Activité récente
+    recentActivity: [
+        { type: "booking", message: "Nouvelle réservation de Gaëlle Enganamouit", time: "Il y a 30 min" },
+        { type: "payment", message: "Paiement de 250 000 CFA reçu", time: "Il y a 1 heure" },
+        { type: "booking", message: "Nouvelle réservation de Roger Milla", time: "Il y a 2 heures" },
+        { type: "payment", message: "Paiement de 180 000 CFA confirmé", time: "Il y a 3 heures" },
+        { type: "booking", message: "Nouvelle réservation de Marie-Claire Fouda", time: "Il y a 5 heures" },
+        { type: "user", message: "Nouvel utilisateur inscrit: Lionel Manga", time: "Il y a 8 heures" },
+        { type: "user", message: "Nouvel utilisateur inscrit: Charlotte Dipanda", time: "Il y a 1 jour" },
+        { type: "booking", message: "Réservation complétée par Patrick Mboma", time: "Il y a 1 jour" },
+    ],
+
+    // Stats mensuelles (pour graphiques)
+    monthlyStats: [
+        { month: "Sept", revenue: 850000, bookings: 8 },
+        { month: "Oct", revenue: 1050000, bookings: 12 },
+        { month: "Nov", revenue: 920000, bookings: 10 },
+        { month: "Déc", revenue: 1580000, bookings: 18 },
+        { month: "Jan", revenue: 1890000, bookings: 22 },
+        { month: "Fév", revenue: 3055000, bookings: 17 },
+    ],
+
+    // Top véhicules
+    topVehicles: [
+        { id: 7, name: "Mercedes Classe S", bookings: 8, revenue: 1200000 },
+        { id: 3, name: "Range Rover Sport", bookings: 6, revenue: 720000 },
+        { id: 2, name: "Toyota Land Cruiser V8", bookings: 5, revenue: 425000 },
+        { id: 14, name: "Limousine Lincoln", bookings: 4, revenue: 1000000 },
+        { id: 1, name: "Mercedes GLE 450", bookings: 4, revenue: 300000 },
+    ],
+};
+
+// Export par défaut
+export default {
+    users: mockUsers,
+    agencies: mockAgencies,
+    cars: mockCars,
+    drivers: mockDrivers,
+    bookings: mockBookings,
+    payments: mockPayments,
+    notifications: mockNotifications,
+    stats: mockAdminStats,
+};
