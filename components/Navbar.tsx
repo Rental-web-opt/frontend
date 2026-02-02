@@ -11,8 +11,8 @@ export default function Navbar() {
     const { protect, user } = useAuth();
     const pathname = usePathname();
 
-    // Masquer la Navbar sur les pages d'auth
-    if (pathname.startsWith('/Login') || pathname.startsWith('/Register')) {
+    // Masquer la Navbar sur les pages d'auth ET les pages Admin (Admin a sa propre sidebar)
+    if (pathname.startsWith('/Login') || pathname.startsWith('/Register') || pathname.startsWith('/Admin')) {
         return null;
     }
 

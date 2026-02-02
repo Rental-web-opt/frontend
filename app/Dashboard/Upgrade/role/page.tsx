@@ -16,14 +16,14 @@ export default function UpgradePage() {
       const response = await axios.post(`http://localhost:8081/api/users/${user?.id}/upgrade`, {
         role: roleTarget.toUpperCase() // "DRIVER" ou "AGENCY"
       });
-      
+
       // On met à jour l'utilisateur dans le contexte (Simulé ici par un re-login)
       // Idéalement, le backend renvoie le nouvel objet User mis à jour
       const updatedUser = response.data;
       const token = localStorage.getItem("token") || "";
-      
-      login(updatedUser, token); // Cela va rediriger automatiquement vers le bon dashboard grâce au AuthContext !
-      
+
+      login(updatedUser); // Cela va rediriger automatiquement vers le bon dashboard grâce au AuthContext !
+
     } catch (error) {
       alert("Erreur lors du changement de rôle");
     }
@@ -34,10 +34,10 @@ export default function UpgradePage() {
       <div className="bg-white p-10 rounded-3xl shadow-xl text-center max-w-md">
         <h1 className="text-2xl font-bold mb-4">Confirmation</h1>
         <p className="text-slate-600 mb-8">
-          Vous êtes sur le point de passer votre compte en mode 
+          Vous êtes sur le point de passer votre compte en mode
           <span className="font-bold text-blue-600"> {roleTarget}</span>.
         </p>
-        <button 
+        <button
           onClick={handleUpgrade}
           className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700"
         >

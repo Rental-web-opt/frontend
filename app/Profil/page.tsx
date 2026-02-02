@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
@@ -15,7 +15,7 @@ import {
     Search, Edit2, ChevronDown, Calendar, Car, Trash2, User,
     Mail, MapPin, Lock, Smartphone, CreditCard, BellRing, Globe,
     Moon, Shield, FileText, HelpCircle, ChevronRight, ArrowLeft,
-    Sun, Monitor, Crown, Menu, X, CalendarClock // Ajout de CalendarClock, Menu, X
+    Sun, Monitor, Crown, Menu, X, CalendarClock, ShieldCheck // Ajout de CalendarClock, Menu, X, ShieldCheck
 } from "lucide-react";
 
 // --- DONNÉES FACTICES ---
@@ -258,20 +258,12 @@ const TransactionsView = ({ type }: { type: 'locations' | 'payments' }) => {
                 .finally(() => setLoading(false));
         } else if (type === 'payments') {
             // Fetch payments
-            // Note: need to import paymentService at top of file, assuming it's available in api.ts
-            // But since imports are at top and I am editing middle, I rely on next command to fix imports if needed or assume user added it
-            // For now I will assume I can access it or use axios directly if needed, but correct way is api.ts
-            // Wait, I just added paymentService to api.ts, so I should be able to use it if imported.
-            // To be safe I will use specific import or fully qualified if possible, but standard is import. 
-            // Since I can't add import easily here without rewriting top, I'll assume 'paymentService' is imported or use 'require' or just 'api.get' via axios instance if exported.
-            // Let's rely on api import. Wait, api.ts exports paymentService.
-            // For now, I'll use the service I just created.
             const { paymentService } = require('@/services/api');
-            paymentService.getMyPayments()
+            paymentService.getByUser(user.id)
                 .then((res: any) => setData(res.data))
                 .catch((err: any) => {
                     console.error("Error payments", err);
-                    setError("Impossible de charger l'historique des paiements.");
+                    setData([]); // Retourner une liste vide si erreur
                 })
                 .finally(() => setLoading(false));
         }
@@ -592,7 +584,7 @@ const SettingsView = () => {
 
 // --- PAGE PRINCIPALE ---
 
-export default function ProfilePage() {
+function ProfilePageContent() {
     const { user, logout } = useAuth(); // Utilisation du contexte Auth
     const { unreadCount } = useNotification(); // Utilisation du contexte Notif
     const searchParams = useSearchParams();
@@ -721,6 +713,14 @@ export default function ProfilePage() {
                     <div className="mt-auto px-6 pt-4 border-t border-slate-100">
                         <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Autres</p>
                         <nav className="space-y-1">
+                            {/* LIEN ADMIN - Visible uniquement pour les ADMIN */}
+                            {user?.role === "ADMIN" && (
+                                <Link href="/Admin" className="block">
+                                    <button className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium bg-gradient-to-r from-[#002AD7] to-[#0044ff] text-white hover:shadow-lg transition-all shadow-md">
+                                        <ShieldCheck className="w-5 h-5" /> Dashboard Admin
+                                    </button>
+                                </Link>
+                            )}
                             <button onClick={() => handleTabChange("settings")} className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-colors ${activeTab === 'settings' ? 'bg-blue-50 text-blue-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}>
                                 <Settings className={`w-5 h-5 ${activeTab === 'settings' ? 'text-blue-600' : 'text-slate-400'}`} /> Paramètres
                             </button>
@@ -797,5 +797,14 @@ export default function ProfilePage() {
                 </main>
             </div>
         </div>
+    );
+}
+
+// Wrapper avec Suspense pour useSearchParams
+export default function ProfilePage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div></div>}>
+            <ProfilePageContent />
+        </Suspense>
     );
 }

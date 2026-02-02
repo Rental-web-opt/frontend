@@ -1,0 +1,511 @@
+"use client";
+
+import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
+import AdminLayout from "@/components/AdminLayout";
+import { useEffect, useState } from "react";
+import api from "@/services/api";
+import { Car, Search, Star, Trash2, Phone, Mail, Plus, X, Edit2, User, MapPin, Shield } from "lucide-react";
+
+interface Driver {
+    id: number;
+    fullName: string;
+    email?: string;
+    phone?: string;
+    licenseNumber?: string;
+    available: boolean;
+    rating?: number;
+    experience?: number;
+}
+
+export default function DriversManagement() {
+    const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
+
+    // Modal states
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+
+    // Form state
+    const [formData, setFormData] = useState({
+        fullName: "", email: "", phone: "", licenseNumber: "", available: true, experience: 0
+    });
+
+    useEffect(() => {
+        fetchDrivers();
+    }, []);
+
+    const fetchDrivers = async () => {
+        try {
+            const response = await api.get("/drivers");
+            setDrivers(response.data);
+        } catch (error) {
+            console.error("Erreur lors du chargement des chauffeurs", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAddDriver = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await api.post("/drivers", formData);
+            setShowAddModal(false);
+            resetForm();
+            fetchDrivers();
+        } catch (error: any) {
+            alert(error.response?.data?.message || "Erreur lors de la création");
+        }
+    };
+
+    const handleEditDriver = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedDriver) return;
+        try {
+            await api.put(`/drivers/${selectedDriver.id}`, formData);
+            setShowEditModal(false);
+            setSelectedDriver(null);
+            resetForm();
+            fetchDrivers();
+        } catch (error: any) {
+            alert(error.response?.data?.message || "Erreur lors de la modification");
+        }
+    };
+
+    const handleDeleteDriver = async (id: number, name: string) => {
+        if (!confirm(`Êtes-vous sûr de vouloir supprimer le chauffeur "${name}" ?`)) return;
+
+        try {
+            await api.delete(`/drivers/${id}`);
+            fetchDrivers();
+        } catch (error) {
+            alert("❌ Erreur lors de la suppression");
+        }
+    };
+
+    const handleToggleAvailability = async (driver: Driver) => {
+        try {
+            await api.put(`/drivers/${driver.id}`, { ...driver, available: !driver.available });
+            fetchDrivers();
+        } catch (error) {
+            alert("❌ Erreur lors de la mise à jour");
+        }
+    };
+
+    const openEditModal = (driver: Driver) => {
+        setSelectedDriver(driver);
+        setFormData({
+            fullName: driver.fullName || "",
+            email: driver.email || "",
+            phone: driver.phone || "",
+            licenseNumber: driver.licenseNumber || "",
+            available: driver.available ?? true,
+            experience: driver.experience || 0
+        });
+        setShowEditModal(true);
+    };
+
+    const resetForm = () => {
+        setFormData({
+            fullName: "", email: "", phone: "", licenseNumber: "", available: true, experience: 0
+        });
+    };
+
+    const filteredDrivers = drivers.filter(driver =>
+        driver.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        driver.phone?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    if (loading) {
+        return (
+            <ProtectedAdminRoute>
+                <AdminLayout>
+                    <div className="flex items-center justify-center h-[60vh]">
+                        <div className="text-center">
+                            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                            <p className="text-slate-500 font-medium">Chargement des chauffeurs...</p>
+                        </div>
+                    </div>
+                </AdminLayout>
+            </ProtectedAdminRoute>
+        );
+    }
+
+    return (
+        <ProtectedAdminRoute>
+            <AdminLayout>
+                <div className="space-y-6">
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-3xl font-black text-slate-900 mb-1">
+                                🚗 Gestion des Chauffeurs
+                            </h1>
+                            <p className="text-slate-500">
+                                {drivers.length} chauffeur(s) • Gérez votre équipe de conducteurs
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => { resetForm(); setShowAddModal(true); }}
+                            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:scale-105 transition-all"
+                        >
+                            <Plus size={20} /> Ajouter un chauffeur
+                        </button>
+                    </div>
+
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl shadow-xl p-5 text-white">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-emerald-200 text-sm font-medium">Total</p>
+                                    <p className="text-3xl font-black">{drivers.length}</p>
+                                </div>
+                                <Car size={28} className="text-emerald-300" />
+                            </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl p-5 text-white">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-blue-200 text-sm font-medium">Disponibles</p>
+                                    <p className="text-3xl font-black">{drivers.filter(d => d.available).length}</p>
+                                </div>
+                                <Shield size={28} className="text-blue-300" />
+                            </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-xl p-5 text-white">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-orange-200 text-sm font-medium">En service</p>
+                                    <p className="text-3xl font-black">{drivers.filter(d => !d.available).length}</p>
+                                </div>
+                                <User size={28} className="text-orange-300" />
+                            </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl shadow-xl p-5 text-white">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-yellow-200 text-sm font-medium">Note moy.</p>
+                                    <p className="text-3xl font-black">
+                                        {drivers.length > 0
+                                            ? (drivers.reduce((sum, d) => sum + (d.rating || 4.5), 0) / drivers.length).toFixed(1)
+                                            : "N/A"}
+                                    </p>
+                                </div>
+                                <Star size={28} className="text-yellow-300" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Search */}
+                    <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-5">
+                        <div className="relative w-full lg:w-96">
+                            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input
+                                type="text"
+                                placeholder="Rechercher par nom ou téléphone..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Drivers Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                        {filteredDrivers.length === 0 ? (
+                            <div className="col-span-full bg-white rounded-2xl p-12 text-center border border-slate-100">
+                                <Car size={64} className="mx-auto text-slate-300 mb-4" />
+                                <p className="text-slate-500 font-medium text-lg">Aucun chauffeur trouvé</p>
+                            </div>
+                        ) : (
+                            filteredDrivers.map((driver) => (
+                                <div
+                                    key={driver.id}
+                                    className="bg-white rounded-2xl border border-slate-100 shadow-lg hover:shadow-xl transition-all overflow-hidden"
+                                >
+                                    {/* Header */}
+                                    <div className={`px-5 py-4 flex items-center justify-between ${driver.available ? 'bg-gradient-to-r from-emerald-500 to-emerald-700' : 'bg-gradient-to-r from-slate-500 to-slate-700'}`}>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white text-xl font-bold">
+                                                {driver.fullName?.charAt(0).toUpperCase() || "?"}
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-white text-lg">{driver.fullName}</h3>
+                                                <div className="flex items-center gap-1 text-white/80 text-sm">
+                                                    <Star size={12} fill="currentColor" /> {driver.rating || 4.5}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span className="text-white/60 font-mono text-sm">#{driver.id}</span>
+                                    </div>
+
+                                    <div className="p-5 space-y-4">
+                                        {/* Status */}
+                                        <div className="flex items-center justify-between">
+                                            <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${driver.available
+                                                ? "bg-emerald-100 text-emerald-700"
+                                                : "bg-slate-100 text-slate-700"}`}>
+                                                {driver.available ? "✓ Disponible" : "⏳ En service"}
+                                            </span>
+                                            <button
+                                                onClick={() => handleToggleAvailability(driver)}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${driver.available
+                                                    ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                                                    : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"}`}
+                                            >
+                                                {driver.available ? "Marquer occupé" : "Marquer disponible"}
+                                            </button>
+                                        </div>
+
+                                        {/* Contact Info */}
+                                        <div className="space-y-2">
+                                            {driver.phone && (
+                                                <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 p-2 rounded-lg">
+                                                    <Phone size={14} className="text-slate-400" />
+                                                    {driver.phone}
+                                                </div>
+                                            )}
+                                            {driver.email && (
+                                                <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 p-2 rounded-lg">
+                                                    <Mail size={14} className="text-slate-400" />
+                                                    {driver.email}
+                                                </div>
+                                            )}
+                                            {driver.licenseNumber && (
+                                                <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 p-2 rounded-lg">
+                                                    <Shield size={14} />
+                                                    Permis: {driver.licenseNumber}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Experience */}
+                                        {driver.experience && (
+                                            <div className="text-center p-3 bg-emerald-50 rounded-xl">
+                                                <p className="text-2xl font-black text-emerald-600">{driver.experience}</p>
+                                                <p className="text-xs text-emerald-700 font-bold">années d'expérience</p>
+                                            </div>
+                                        )}
+
+                                        {/* Actions */}
+                                        <div className="flex gap-2 pt-3 border-t border-slate-100">
+                                            <button
+                                                onClick={() => openEditModal(driver)}
+                                                className="flex-1 flex items-center justify-center gap-2 bg-emerald-100 hover:bg-emerald-600 hover:text-white text-emerald-700 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                                            >
+                                                <Edit2 size={14} /> Modifier
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteDriver(driver.id, driver.fullName)}
+                                                className="flex items-center justify-center bg-red-100 hover:bg-red-500 hover:text-white text-red-700 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* MODAL: Add Driver */}
+                {showAddModal && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
+                            <div className="bg-gradient-to-r from-emerald-500 to-emerald-700 p-6 text-white sticky top-0">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-xl font-bold">➕ Nouveau Chauffeur</h2>
+                                    <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                            <form onSubmit={handleAddDriver} className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">Nom complet *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.fullName}
+                                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        placeholder="Jean-Pierre Mbarga"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Téléphone</label>
+                                        <input
+                                            type="tel"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                            placeholder="+237 6XX XXX XXX"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Email</label>
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                            placeholder="chauffeur@email.cm"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">N° Permis</label>
+                                        <input
+                                            type="text"
+                                            value={formData.licenseNumber}
+                                            onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                            placeholder="ABC123456"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Expérience (années)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={formData.experience}
+                                            onChange={(e) => setFormData({ ...formData, experience: parseInt(e.target.value) || 0 })}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="flex items-center gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.available}
+                                            onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
+                                            className="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500"
+                                        />
+                                        <span className="font-semibold text-slate-700">Disponible immédiatement</span>
+                                    </label>
+                                </div>
+                                <div className="flex gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAddModal(false)}
+                                        className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition"
+                                    >
+                                        Créer
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL: Edit Driver */}
+                {showEditModal && selectedDriver && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
+                            <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white sticky top-0">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-xl font-bold">✏️ Modifier le chauffeur</h2>
+                                    <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+                                <p className="text-blue-200 mt-1">{selectedDriver.fullName}</p>
+                            </div>
+                            <form onSubmit={handleEditDriver} className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">Nom complet *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.fullName}
+                                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Téléphone</label>
+                                        <input
+                                            type="tel"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Email</label>
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">N° Permis</label>
+                                        <input
+                                            type="text"
+                                            value={formData.licenseNumber}
+                                            onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Expérience (années)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={formData.experience}
+                                            onChange={(e) => setFormData({ ...formData, experience: parseInt(e.target.value) || 0 })}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="flex items-center gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.available}
+                                            onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
+                                            className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <span className="font-semibold text-slate-700">Disponible</span>
+                                    </label>
+                                </div>
+                                <div className="flex gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEditModal(false)}
+                                        className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition"
+                                    >
+                                        Enregistrer
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </AdminLayout>
+        </ProtectedAdminRoute>
+    );
+}
