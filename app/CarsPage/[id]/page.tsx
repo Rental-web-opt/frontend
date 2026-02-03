@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Star, CheckCircle, Calendar, CalendarClock, Clock, Loader2, UserCheck, User, AlertCircle, Tag, XCircle, CreditCard } from "lucide-react";
 import { carService, bookingService, driverService, isMockMode } from "@/services/api";
-import { allCars } from "@/modules/carsData";
 import { useAuth } from "@/context/AuthContext";
 
 export default function CarDetailsPage() {
@@ -49,20 +48,12 @@ export default function CarDetailsPage() {
             carService.getById(Number(id))
                 .then((res) => setCar(res.data))
                 .catch((err) => {
-                    console.error("Erreur API, recherche dans les données statiques:", err);
-                    const found = allCars.find((c) => c.id === Number(id));
-                    if (found) {
-                        setCar({
-                            ...found,
-                            pricePerDay: found.price,
-                            pricePerHour: found.price / 10,
-                            monthlyPrice: found.monthlyPrice || (found.price * 30 * 0.8),
-                        });
-                    }
+                    console.error("Erreur chargement voiture:", err);
+                    setCar(null);
                 })
                 .finally(() => setLoading(false));
 
-            // Charger les créneaux occupés via le service (supporte mock)
+            // Charger les créneaux occupés via le service
             bookingService.getOccupiedSlots(Number(id))
                 .then(res => setOccupiedSlots(res.data || []))
                 .catch(err => console.log("Pas de créneaux occupés"));

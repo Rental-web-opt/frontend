@@ -601,15 +601,13 @@ function ProfilePageContent() {
         if (query.length > 2) {
             setIsSearching(true);
             try {
-                // Version locale pour Vercel
-                const { allCars } = require("@/modules/carsData");
-                const filtered = allCars.filter((car: any) =>
-                    car.name.toLowerCase().includes(query.toLowerCase()) ||
-                    car.specs.marque.toLowerCase().includes(query.toLowerCase())
-                );
-                setSearchResults(filtered);
+                // Utiliser le service de recherche backend
+                const { searchService } = require("@/services/api");
+                const response = await searchService.searchCars(query);
+                setSearchResults(response.data || []);
             } catch (err) {
                 console.error("Search error", err);
+                setSearchResults([]);
             } finally {
                 setIsSearching(false);
             }

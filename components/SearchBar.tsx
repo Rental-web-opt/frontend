@@ -36,38 +36,43 @@ export default function SearchBar({ onResults }: SearchBarProps) {
 
         setLoading(true);
         try {
-            // Pour Vercel : On utilise les données locales (allCars)
-            const allMockCars = require("@/modules/carsData").allCars;
+            // Utiliser le service de recherche backend
+            const response = await searchService.searchCars(query.trim());
 
-            const filtered = allMockCars.filter((car: any) => {
-                const matchQuery = !query.trim() ||
-                    car.name.toLowerCase().includes(query.toLowerCase()) ||
-                    (car.specs?.marque && car.specs.marque.toLowerCase().includes(query.toLowerCase()));
+            let carsData = response.data || [];
 
-                const matchType = !filters.type || car.type.toLowerCase() === filters.type.toLowerCase();
-
-                const min = filters.minPrice ? parseFloat(filters.minPrice) : 0;
-                const max = filters.maxPrice ? parseFloat(filters.maxPrice) : Infinity;
-                const matchPrice = car.price >= min && car.price <= max;
-
-                return matchQuery && matchType && matchPrice;
-            });
+            // Appliquer les filtres côté client si nécessaire
+            if (filters.type) {
+                carsData = carsData.filter((car: any) =>
+                    car.type?.toLowerCase() === filters.type.toLowerCase()
+                );
+            }
+            if (filters.minPrice) {
+                carsData = carsData.filter((car: any) =>
+                    (car.pricePerDay || car.price || 0) >= parseFloat(filters.minPrice)
+                );
+            }
+            if (filters.maxPrice) {
+                carsData = carsData.filter((car: any) =>
+                    (car.pricePerDay || car.price || 0) <= parseFloat(filters.maxPrice)
+                );
+            }
 
             // Conversion au format CarResult
-            const mappedResults: CarResult[] = filtered.map((car: any) => ({
+            const mappedResults: CarResult[] = carsData.map((car: any) => ({
                 id: car.id.toString(),
                 name: car.name,
-                brand: car.specs?.marque || "Inconnu",
+                brand: car.brand || car.specs?.marque || "Inconnu",
                 type: car.type,
-                pricePerDay: car.price,
-                available: true
+                pricePerDay: car.pricePerDay || car.price,
+                available: car.available !== false
             }));
 
             setResults(mappedResults);
             setShowResults(true);
             if (onResults) onResults(mappedResults);
         } catch (error) {
-            console.error("Erreur de recherche locale:", error);
+            console.error("Erreur de recherche:", error);
             setResults([]);
         } finally {
             setLoading(false);

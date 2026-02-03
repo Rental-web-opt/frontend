@@ -7,8 +7,8 @@ import {
   Search, Heart, SlidersHorizontal, MapPin,
   Star, Clock, Building2, Car, ArrowRight, Settings, Loader2
 } from "lucide-react";
-// On utilise les données mock harmonisées
-import { mockAgencies } from "@/modules/mockData";
+// Utiliser le service API pour charger les agences
+import { agencyService } from "@/services/api";
 
 // Fonction utilitaire pour calculer l'ouverture (sans toucher au design)
 const isShopOpen = (openingHours: string) => {
@@ -99,11 +99,20 @@ export default function AgenciesPage() {
   const [agencies, setAgencies] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Extraire les villes uniques des données mock
-  const cities = ["Tous", ...Array.from(new Set(mockAgencies.map(a => a.city)))];
+  // Extraire les villes uniques des agences chargées
+  const cities = ["Tous", ...Array.from(new Set(agencies.map(a => a.city)))].filter(Boolean);
 
   useEffect(() => {
-    setAgencies(mockAgencies);
+    setLoading(true);
+    agencyService.getAll()
+      .then(res => {
+        setAgencies(res.data || []);
+      })
+      .catch(err => {
+        console.error("Erreur chargement agences:", err);
+        setAgencies([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const filteredAgencies = agencies.filter(agency => {

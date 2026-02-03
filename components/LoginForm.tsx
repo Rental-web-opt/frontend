@@ -28,13 +28,22 @@ export default function LoginForm() {
 
       console.log("Réponse Login :", response.data);
 
-      // On passe l'objet utilisateur (response.data.user) au contexte
-      // Le token est aussi disponible dans response.data.token
-      login(response.data.user);
+      // Gérer les deux formats de réponse :
+      // - Backend réel : response.data = { id, fullName, email, role, token } (ou user directement)
+      // - Mode mock : response.data = { user: {...}, token: "..." }
+      let userData = response.data.user || response.data;
+
+      // Si le token est à la racine de la réponse, le stocker
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
+
+      // Passer l'objet utilisateur au contexte
+      login(userData);
 
     } catch (err: any) {
       console.error("Erreur login", err);
-      const msg = err.response?.data?.message || "Email ou mot de passe incorrect.";
+      const msg = err.response?.data?.message || err.response?.data?.error || "Email ou mot de passe incorrect.";
       setError(msg);
     } finally {
       setLoading(false);

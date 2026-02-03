@@ -14,17 +14,17 @@ import {
 } from '@/modules/mockData';
 
 // ============================================
-// 🌐 CONFIGURATION - MODE DÉMO VERCEL
+// 🌐 CONFIGURATION - MODE BACKEND RÉEL
 // ============================================
 
-// 🚀 MODE DÉMO ACTIVÉ - Toutes les données sont fictives
-// Pour utiliser le vrai backend, utilisez la branche 'develop'
-const USE_MOCK_DATA = true;
+// ⚙️ MODE PRODUCTION - Connexion au vrai backend
+// Pour le mode démo Vercel, utilisez la branche 'main' avec USE_MOCK_DATA = true
+const USE_MOCK_DATA = false;
 
 // Fonction exportée pour vérifier le mode mock depuis d'autres fichiers
 export const isMockMode = () => USE_MOCK_DATA;
 
-// URL du backend (non utilisé en mode démo)
+// URL du backend Spring Boot
 const API_URL = 'http://localhost:8081/api';
 
 

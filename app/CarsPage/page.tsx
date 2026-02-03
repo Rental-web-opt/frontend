@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, Heart, SlidersHorizontal, Users, Fuel, Gauge, Car, Star, CalendarClock, Filter, X } from "lucide-react";
-import { allCars } from "@/modules/carsData";
+import { carService } from "@/services/api";
 import { useFavorite } from "@/context/FavoriteContext";
 
 // --- COMPOSANT CARTE AMÉLIORÉ ---
@@ -110,39 +110,25 @@ export default function CarsPage() {
 
   useEffect(() => {
     setLoading(true);
-    // Tenter de charger depuis le backend
-    import("@/services/api").then(({ carService }) => {
-      carService.getAll()
-        .then((res) => {
-          if (res.data && res.data.length > 0) {
-            // Adapt Backend data to Frontend model
-            const apiCars = res.data.map((c: any) => ({
-              ...c,
-              pricePerDay: c.pricePerDay,
-              monthlyPrice: c.monthlyPrice || (c.pricePerDay * 30 * 0.8),
-              image: c.image || "/assets/car1.jpeg",
-              rating: c.rating || 4.8,
-              available: c.available !== undefined ? c.available : true // Garder le champ available
-            }));
-            setCars(apiCars);
-          } else {
-            throw new Error("No cars in DB");
-          }
-        })
-        .catch((err) => {
-          console.warn("Backend non disponible ou vide, utilisation des mocks", err);
-          // Fallback Mocks
-          const mappedCars = allCars.map((c: any) => ({
-            ...c,
-            pricePerDay: c.price,
-            fuelType: c.fuel,
-            available: true, // Utiliser 'available' au lieu de 'isAvailable'
-            rating: 4.8
-          }));
-          setCars(mappedCars);
-        })
-        .finally(() => setLoading(false));
-    });
+    // Charger depuis le backend
+    carService.getAll()
+      .then((res) => {
+        // Adapter les données du backend au modèle frontend
+        const apiCars = (res.data || []).map((c: any) => ({
+          ...c,
+          pricePerDay: c.pricePerDay,
+          monthlyPrice: c.monthlyPrice || (c.pricePerDay * 30 * 0.8),
+          image: c.image || "/assets/car1.jpeg",
+          rating: c.rating || 4.8,
+          available: c.available !== undefined ? c.available : true
+        }));
+        setCars(apiCars);
+      })
+      .catch((err) => {
+        console.error("Erreur chargement voitures:", err);
+        setCars([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const filteredCars = cars.filter((car) => {

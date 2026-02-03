@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star, Fuel, Gauge, User, ShieldCheck, Clock, Wallet, Headphones } from "lucide-react";
-import { allCars } from "@/modules/carsData";
+import { carService } from "@/services/api";
 
 // --- CARTE VÉHICULE PREMIUM (REFONTE) ---
 const HomeCarCard = ({ data }: { data: any }) => (
@@ -12,7 +12,7 @@ const HomeCarCard = ({ data }: { data: any }) => (
     {/* Image Container avec effet de zoom subtil */}
     <div className="relative h-56 bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
       <Image
-        src={data.image}
+        src={data.image || "/assets/car1.jpeg"}
         alt={data.name}
         fill
         className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
@@ -21,12 +21,12 @@ const HomeCarCard = ({ data }: { data: any }) => (
       {/* Badge Note Flottant */}
       <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold shadow-sm border border-slate-100">
         <Star size={14} className="text-[#F76513] fill-[#F76513]" />
-        <span className="text-slate-800">{data.rating}</span>
+        <span className="text-slate-800">{data.rating || 4.8}</span>
       </div>
 
       {/* Badge Catégorie (Optionnel, ex: SUV) */}
       <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-wider">
-        {data.category || "Premium"}
+        {data.type || data.category || "Premium"}
       </div>
     </div>
 
@@ -37,7 +37,7 @@ const HomeCarCard = ({ data }: { data: any }) => (
       </div>
 
       <div className="flex items-baseline gap-1 mb-6">
-        <span className="text-[#002AD7] font-extrabold text-2xl">{data.price.toLocaleString()}</span>
+        <span className="text-[#002AD7] font-extrabold text-2xl">{(data.pricePerDay || data.price)?.toLocaleString()}</span>
         <span className="text-sm font-medium text-slate-400">CFA/jour</span>
       </div>
 
@@ -45,11 +45,11 @@ const HomeCarCard = ({ data }: { data: any }) => (
       <div className="grid grid-cols-3 gap-2 py-4 border-t border-slate-50 mb-4 bg-slate-50/50 rounded-xl px-2">
         <div className="flex flex-col items-center gap-1.5">
           <Gauge size={18} className="text-slate-400 group-hover:text-[#002AD7] transition-colors" />
-          <span className="text-[11px] text-slate-500 font-semibold truncate w-full text-center">{data.specs?.transmission || "Auto"}</span>
+          <span className="text-[11px] text-slate-500 font-semibold truncate w-full text-center">{data.transmission || data.specs?.transmission || "Auto"}</span>
         </div>
         <div className="flex flex-col items-center gap-1.5 border-l border-slate-200/50">
           <Fuel size={18} className="text-slate-400 group-hover:text-[#F76513] transition-colors" />
-          <span className="text-[11px] text-slate-500 font-semibold">{data.fuel}</span>
+          <span className="text-[11px] text-slate-500 font-semibold">{data.fuelType || data.fuel}</span>
         </div>
         <div className="flex flex-col items-center gap-1.5 border-l border-slate-200/50">
           <User size={18} className="text-slate-400 group-hover:text-slate-800 transition-colors" />
@@ -84,8 +84,20 @@ export default function FeaturedVehicles() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [displayCars, setDisplayCars] = useState<any[]>([]);
 
-  const displayCars = allCars;
+  // Charger les voitures depuis le backend
+  useEffect(() => {
+    carService.getAll()
+      .then(res => {
+        const cars = res.data?.slice(0, 8) || []; // Limiter à 8 pour le carousel
+        setDisplayCars(cars);
+      })
+      .catch(err => {
+        console.error("Erreur chargement voitures:", err);
+        setDisplayCars([]);
+      });
+  }, []);
 
   // --- LOGIQUE DE SCROLL & DOTS ---
   const handleScroll = () => {
