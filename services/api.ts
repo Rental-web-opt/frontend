@@ -208,11 +208,43 @@ export const driverService = {
 // 🏢 SERVICE AGENCES
 // ============================================
 
+// Fonction utilitaire pour calculer si une agence est ouverte (heure Cameroun UTC+1)
+const isAgencyOpen = (openingHours: string): boolean => {
+  if (!openingHours) return false;
+  try {
+    // Heure actuelle au Cameroun (Africa/Douala = UTC+1)
+    const nowCameroon = new Date().toLocaleString("en-US", { timeZone: "Africa/Douala" });
+    const cameroonTime = new Date(nowCameroon);
+    const currentHour = cameroonTime.getHours();
+
+    // Cas spécial 24h/24
+    if (openingHours.includes("24h") || openingHours.includes("24/7")) {
+      return true;
+    }
+
+    // Parser les heures (format: "08h00 - 18h00" ou "8h-18h")
+    const hours = openingHours.match(/(\d+)/g);
+    if (hours && hours.length >= 2) {
+      const openHour = parseInt(hours[0]);
+      const closeHour = parseInt(hours[1]);
+      return currentHour >= openHour && currentHour < closeHour;
+    }
+  } catch (e) {
+    console.error("Erreur parsing heures:", e);
+  }
+  return false;
+};
+
 export const agencyService = {
   getAll: async () => {
     if (USE_MOCK_DATA) {
       await delay(300);
-      return mockResponse(mockAgencies);
+      // Ajouter le champ 'open' calculé dynamiquement
+      const agenciesWithOpenStatus = mockAgencies.map(agency => ({
+        ...agency,
+        open: isAgencyOpen(agency.openingHours)
+      }));
+      return mockResponse(agenciesWithOpenStatus);
     }
     return api.get('/agencies');
   },
@@ -220,7 +252,13 @@ export const agencyService = {
     if (USE_MOCK_DATA) {
       await delay(200);
       const agency = mockAgencies.find(a => a.id === id);
-      return mockResponse(agency || null);
+      if (agency) {
+        return mockResponse({
+          ...agency,
+          open: isAgencyOpen(agency.openingHours)
+        });
+      }
+      return mockResponse(null);
     }
     return api.get(`/agencies/${id}`);
   },
