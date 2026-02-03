@@ -202,6 +202,19 @@ export const driverService = {
     }
     return api.get(`/drivers/${id}`);
   },
+  update: async (id: number, data: any) => {
+    if (USE_MOCK_DATA) {
+      await delay(300);
+      // Mise à jour en mémoire (mock)
+      const driverIndex = mockDrivers.findIndex(d => d.id === id);
+      if (driverIndex !== -1) {
+        Object.assign(mockDrivers[driverIndex], data);
+        return mockResponse(mockDrivers[driverIndex]);
+      }
+      return mockResponse(null);
+    }
+    return api.put(`/drivers/${id}`, data);
+  },
 };
 
 // ============================================
