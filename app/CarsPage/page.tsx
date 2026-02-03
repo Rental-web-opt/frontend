@@ -190,21 +190,37 @@ export default function CarsPage() {
               ))}
             </div>
           </div>
+
+          {/* Bouton Appliquer pour mobile */}
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="md:hidden w-full bg-blue-600 text-white py-3 rounded-xl font-bold mt-4"
+          >
+            Appliquer les filtres
+          </button>
         </aside>
 
+        {/* Overlay mobile */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
         {/* CONTENU */}
-        <section className="flex-1 pb-20">
+        <section className="flex-1 pb-24 md:pb-20">
           {/* Bannière Promo */}
-          <div className="bg-gradient-to-r from-blue-900 to-blue-700 rounded-[2.5rem] p-8 md:p-12 mb-12 text-white relative overflow-hidden shadow-xl">
+          <div className="bg-gradient-to-r from-blue-900 to-blue-700 rounded-2xl sm:rounded-[2.5rem] p-6 sm:p-8 md:p-12 mb-8 md:mb-12 text-white relative overflow-hidden shadow-xl">
             <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
             <div className="relative z-10 max-w-2xl">
-              <div className="inline-block bg-blue-500/30 border border-blue-400/30 px-4 py-1.5 rounded-full text-xs font-bold mb-4 backdrop-blur-sm">
+              <div className="inline-block bg-blue-500/30 border border-blue-400/30 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold mb-3 sm:mb-4 backdrop-blur-sm">
                 ✨ Nouveauté 2024
               </div>
-              <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight">Découvrez l'Abonnement Auto</h1>
-              <p className="text-blue-100 text-lg mb-8">Plus besoin d'acheter. Abonnez-vous à votre véhicule préféré au mois et changez quand vous voulez.</p>
+              <h1 className="text-2xl sm:text-3xl md:text-5xl font-black mb-3 sm:mb-4 leading-tight">Découvrez l'Abonnement Auto</h1>
+              <p className="text-blue-100 text-sm sm:text-lg mb-6 sm:mb-8">Plus besoin d'acheter. Abonnez-vous à votre véhicule préféré au mois et changez quand vous voulez.</p>
               <Link href="/Plans">
-                <button className="bg-white text-blue-900 px-8 py-3.5 rounded-xl font-bold hover:bg-blue-50 transition shadow-lg flex items-center gap-2">
+                <button className="bg-white text-blue-900 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-bold hover:bg-blue-50 transition shadow-lg flex items-center gap-2 text-sm sm:text-base">
                   Voir les formules <CalendarClock size={18} />
                 </button>
               </Link>
@@ -212,33 +228,33 @@ export default function CarsPage() {
           </div>
 
           {/* Barre de Recherche Locale (pour Vercel) */}
-          <div className="mb-12 relative">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 w-6 h-6" />
+          <div className="mb-8 md:mb-12 relative">
+            <Search className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 sm:w-6 sm:h-6" />
             <input
               type="text"
-              placeholder="Rechercher une voiture par nom, marque..."
+              placeholder="Rechercher une voiture..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-16 pr-6 py-5 rounded-[2rem] bg-white border border-slate-200 outline-none focus:ring-4 focus:ring-blue-100 shadow-lg text-lg text-slate-700 transition-all placeholder:text-slate-400 font-medium"
+              className="w-full pl-12 sm:pl-16 pr-4 sm:pr-6 py-4 sm:py-5 rounded-2xl sm:rounded-[2rem] bg-white border border-slate-200 outline-none focus:ring-4 focus:ring-blue-100 shadow-lg text-base sm:text-lg text-slate-700 transition-all placeholder:text-slate-400 font-medium"
             />
           </div>
 
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-slate-800">
-              {searchTerm ? `Résultats pour "${searchTerm}"` : `${filteredCars.length} véhicules disponibles`}
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-800">
+              {searchTerm ? `Résultats pour "${searchTerm}"` : `${filteredCars.length} véhicules`}
             </h2>
           </div>
 
           {loading ? (
             <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>
           ) : filteredCars.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {filteredCars.map((car) => (
                 <CarCard key={car.id} data={car} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-32 bg-white rounded-[2.5rem] border border-dashed border-slate-200">
+            <div className="text-center py-20 sm:py-32 bg-white rounded-2xl sm:rounded-[2.5rem] border border-dashed border-slate-200">
               <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
                 <Car size={32} />
               </div>
@@ -247,6 +263,15 @@ export default function CarsPage() {
             </div>
           )}
         </section>
+
+        {/* Bouton Filtre Flottant Mobile */}
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="md:hidden fixed bottom-24 right-4 z-30 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2"
+        >
+          <Filter size={20} />
+          <span className="font-bold text-sm">Filtres</span>
+        </button>
       </main>
     </div>
   );

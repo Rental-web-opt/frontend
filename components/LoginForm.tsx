@@ -42,10 +42,10 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 min-h-[500px] flex flex-col justify-center">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-black text-slate-900 mb-2">Se connecter</h1>
-        <p className="text-slate-500 text-sm">Accédez à votre compte EASY-RENT.</p>
+    <div className="bg-white p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-xl border border-slate-100 w-full max-w-md mx-auto min-h-[450px] sm:min-h-[500px] flex flex-col justify-center">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">Se connecter</h1>
+        <p className="text-slate-500 text-xs sm:text-sm">Accédez à votre compte EASY-RENT.</p>
       </div>
 
       {error && (

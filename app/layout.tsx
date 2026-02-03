@@ -34,7 +34,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <NotificationProvider>
             <FavoriteProvider>
               <Navbar />
-              <main className="flex-1">
+              <main className="flex-1 pb-20 md:pb-0">
                 {children}
               </main>
               <Footer />
