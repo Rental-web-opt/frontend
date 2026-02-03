@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { bookingService, driverService } from "@/services/api";
 import DriverLayout from "@/components/DriverLayout";
@@ -28,6 +29,7 @@ interface CourseType {
 
 export default function DriverDashboard() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
 
   // États
   const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'history'>('dashboard');
@@ -35,6 +37,16 @@ export default function DriverDashboard() {
   const [courses, setCourses] = useState<CourseType[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAvailable, setIsAvailable] = useState(true);
+
+  // Synchroniser l'onglet actif avec l'URL
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'courses' || tab === 'history') {
+      setActiveTab(tab);
+    } else {
+      setActiveTab('dashboard');
+    }
+  }, [searchParams]);
 
   // Chargement des données
   useEffect(() => {
@@ -120,8 +132,8 @@ export default function DriverDashboard() {
               key={tab}
               onClick={() => setActiveTab(tab as any)}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${activeTab === tab
-                  ? 'text-white'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                ? 'text-white'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                 }`}
               style={activeTab === tab ? { backgroundColor: COLORS.primary } : {}}
             >

@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ReactNode, useState } from "react";
 import Image from "next/image";
 import {
@@ -45,15 +45,17 @@ export default function DriverLayout({
 }: DriverLayoutProps) {
     const { user, logout } = useAuth();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const currentTab = searchParams.get('tab') || 'dashboard';
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const menuItems = [
-        { name: "Tableau de Bord", path: "/Dashboard/Driver", icon: LayoutDashboard },
-        { name: "Courses en cours", path: "/Dashboard/Driver?tab=courses", icon: Navigation },
-        { name: "Historique", path: "/Dashboard/Driver?tab=history", icon: Clock },
+        { name: "Tableau de Bord", path: "/Dashboard/Driver", tab: "dashboard", icon: LayoutDashboard },
+        { name: "Courses en cours", path: "/Dashboard/Driver?tab=courses", tab: "courses", icon: Navigation },
+        { name: "Historique", path: "/Dashboard/Driver?tab=history", tab: "history", icon: Clock },
     ];
 
-    const currentPage = menuItems.find(item => pathname === item.path || (pathname === "/Dashboard/Driver" && item.path === "/Dashboard/Driver"))?.name || "Dashboard Chauffeur";
+    const currentPage = menuItems.find(item => item.tab === currentTab)?.name || "Dashboard Chauffeur";
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
@@ -81,8 +83,8 @@ export default function DriverLayout({
                         <button
                             onClick={onToggleAvailability}
                             className={`hidden md:flex px-4 py-2 rounded-xl font-semibold text-sm items-center gap-2 transition border ${isAvailable
-                                    ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                    : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
                                 }`}
                         >
                             <Power size={16} />
@@ -187,7 +189,7 @@ export default function DriverLayout({
                         <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Menu Principal</p>
                         <nav className="space-y-1">
                             {menuItems.map((item) => {
-                                const isActive = pathname === item.path || (item.path === "/Dashboard/Driver" && pathname === "/Dashboard/Driver");
+                                const isActive = item.tab === currentTab;
                                 const Icon = item.icon;
                                 return (
                                     <Link

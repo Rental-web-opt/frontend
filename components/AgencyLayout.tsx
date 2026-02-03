@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ReactNode, useState } from "react";
 import {
     LayoutDashboard,
@@ -34,16 +34,18 @@ interface AgencyLayoutProps {
 export default function AgencyLayout({ children, agencyName = "Mon Agence", agencyCity = "Cameroun" }: AgencyLayoutProps) {
     const { user, logout } = useAuth();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const currentTab = searchParams.get('tab') || 'dashboard';
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const menuItems = [
-        { name: "Tableau de Bord", path: "/Dashboard/Agency", icon: LayoutDashboard },
-        { name: "Réservations", path: "/Dashboard/Agency?tab=bookings", icon: CalendarCheck },
-        { name: "Mes Véhicules", path: "/Dashboard/Agency?tab=cars", icon: Car },
-        { name: "Statistiques", path: "/Dashboard/Agency?tab=stats", icon: TrendingUp },
+        { name: "Tableau de Bord", path: "/Dashboard/Agency", tab: "dashboard", icon: LayoutDashboard },
+        { name: "Réservations", path: "/Dashboard/Agency?tab=bookings", tab: "bookings", icon: CalendarCheck },
+        { name: "Mes Véhicules", path: "/Dashboard/Agency?tab=cars", tab: "cars", icon: Car },
+        { name: "Statistiques", path: "/Dashboard/Agency?tab=stats", tab: "stats", icon: TrendingUp },
     ];
 
-    const currentPage = menuItems.find(item => pathname === item.path || (pathname === "/Dashboard/Agency" && item.path === "/Dashboard/Agency"))?.name || "Dashboard Agence";
+    const currentPage = menuItems.find(item => item.tab === currentTab)?.name || "Dashboard Agence";
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
@@ -118,7 +120,7 @@ export default function AgencyLayout({ children, agencyName = "Mon Agence", agen
                         <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Menu Principal</p>
                         <nav className="space-y-1">
                             {menuItems.map((item) => {
-                                const isActive = pathname === item.path || (item.path === "/Dashboard/Agency" && pathname === "/Dashboard/Agency");
+                                const isActive = item.tab === currentTab;
                                 const Icon = item.icon;
                                 return (
                                     <Link

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { bookingService, carService, agencyService } from "@/services/api";
 import AgencyLayout from "@/components/AgencyLayout";
@@ -45,6 +46,7 @@ interface BookingType {
 
 export default function AgencyDashboard() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
 
   // États
   const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'cars' | 'stats'>('dashboard');
@@ -62,6 +64,16 @@ export default function AgencyDashboard() {
     name: "", brand: "", type: "Berline", pricePerDay: 0,
     transmission: "Automatique", fuelType: "Essence", seats: 5
   });
+
+  // Synchroniser l'onglet actif avec l'URL
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'bookings' || tab === 'cars' || tab === 'stats') {
+      setActiveTab(tab);
+    } else {
+      setActiveTab('dashboard');
+    }
+  }, [searchParams]);
 
   // Chargement des données
   useEffect(() => {
@@ -199,8 +211,8 @@ export default function AgencyDashboard() {
               key={tab}
               onClick={() => setActiveTab(tab as any)}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${activeTab === tab
-                  ? 'text-white'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                ? 'text-white'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                 }`}
               style={activeTab === tab ? { backgroundColor: COLORS.primary } : {}}
             >
@@ -319,8 +331,8 @@ export default function AgencyDashboard() {
                   <div className="text-right">
                     <p className="font-bold text-slate-900">{booking.totalPrice?.toLocaleString()} CFA</p>
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${booking.status === 'PENDING' ? 'bg-orange-100 text-orange-600' :
-                        booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-600' :
-                          'bg-slate-100 text-slate-500'
+                      booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-600' :
+                        'bg-slate-100 text-slate-500'
                       }`}>
                       {booking.status === 'PENDING' ? 'En attente' :
                         booking.status === 'CONFIRMED' ? 'Confirmé' : booking.status}
@@ -387,8 +399,8 @@ export default function AgencyDashboard() {
                     </>
                   ) : (
                     <div className={`px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 ${booking.status === 'CONFIRMED' ? 'bg-green-50 text-green-700' :
-                        booking.status === 'COMPLETED' ? 'bg-blue-50 text-blue-700' :
-                          'bg-slate-50 text-slate-400'
+                      booking.status === 'COMPLETED' ? 'bg-blue-50 text-blue-700' :
+                        'bg-slate-50 text-slate-400'
                       }`}>
                       {booking.status === 'CONFIRMED' ? <CheckCircle size={16} /> : <XCircle size={16} />}
                       {booking.status === 'CONFIRMED' ? 'Confirmé' :
@@ -526,8 +538,8 @@ export default function AgencyDashboard() {
               {cars.slice(0, 3).map((car, i) => (
                 <div key={car.id} className="flex items-center gap-3 py-2">
                   <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${i === 0 ? 'bg-yellow-100 text-yellow-700' :
-                      i === 1 ? 'bg-slate-100 text-slate-600' :
-                        'bg-orange-100 text-orange-700'
+                    i === 1 ? 'bg-slate-100 text-slate-600' :
+                      'bg-orange-100 text-orange-700'
                     }`}>
                     {i + 1}
                   </span>
