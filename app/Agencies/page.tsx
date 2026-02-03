@@ -10,17 +10,34 @@ import {
 // On utilise les données mock harmonisées
 import { mockAgencies } from "@/modules/mockData";
 
-// Fonction utilitaire pour calculer l'ouverture (sans toucher au design)
+// Fonction utilitaire pour calculer l'ouverture basée sur l'heure du Cameroun (UTC+1)
 const isShopOpen = (openingHours: string) => {
   if (!openingHours) return false;
   try {
-    const now = new Date();
-    const currentHour = now.getHours();
+    // Obtenir l'heure actuelle au Cameroun (Africa/Douala = UTC+1)
+    const nowCameroon = new Date().toLocaleString("en-US", { timeZone: "Africa/Douala" });
+    const cameroonTime = new Date(nowCameroon);
+    const currentHour = cameroonTime.getHours();
+    const currentMinutes = cameroonTime.getMinutes();
+
+    // Parser les heures d'ouverture (format: "8h-18h" ou "08h-20h" ou "8h00-18h00")
     const hours = openingHours.match(/(\d+)/g);
     if (hours && hours.length >= 2) {
-      return currentHour >= parseInt(hours[0]) && currentHour < parseInt(hours[1]);
+      const openHour = parseInt(hours[0]);
+      const closeHour = parseInt(hours[1]);
+
+      // Vérifier si l'heure actuelle est dans la plage d'ouverture
+      // Cas spécial pour les agences 24h/24
+      if (openingHours.includes("24h") || openingHours.includes("24/7")) {
+        return true;
+      }
+
+      return currentHour >= openHour && currentHour < closeHour;
     }
-  } catch (e) { return false; }
+  } catch (e) {
+    console.error("Erreur parsing heures:", e);
+    return false;
+  }
   return false;
 };
 
