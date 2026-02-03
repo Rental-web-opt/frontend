@@ -161,11 +161,45 @@ export default function AgencyDashboard() {
     setShowCarModal(true);
   };
 
+  // Fonction pour calculer le statut dynamique basé sur les dates
+  const getBookingStatus = (booking: BookingType): { status: string; label: string; color: string } => {
+    // Si le statut est PENDING ou CANCELLED, on le garde tel quel
+    if (booking.status === 'PENDING') {
+      return { status: 'PENDING', label: 'En attente', color: 'bg-orange-100 text-orange-600' };
+    }
+    if (booking.status === 'CANCELLED') {
+      return { status: 'CANCELLED', label: 'Annulé', color: 'bg-red-100 text-red-600' };
+    }
+
+    // Pour les réservations confirmées, calculer le statut basé sur les dates
+    const now = new Date();
+    const startDate = new Date(booking.startDate);
+    const endDate = new Date(booking.endDate);
+
+    if (now < startDate) {
+      // Avant la période de début → Confirmé
+      return { status: 'CONFIRMED', label: 'Confirmé', color: 'bg-green-100 text-green-600' };
+    } else if (now >= startDate && now <= endDate) {
+      // Pendant la période → En cours
+      return { status: 'IN_PROGRESS', label: 'En cours', color: 'bg-blue-100 text-blue-600' };
+    } else {
+      // Après la période de fin → Terminé
+      return { status: 'COMPLETED', label: 'Terminé', color: 'bg-slate-100 text-slate-600' };
+    }
+  };
+
   // Calculs statistiques
   const pendingCount = bookings.filter(b => b.status === 'PENDING').length;
-  const confirmedCount = bookings.filter(b => b.status === 'CONFIRMED').length;
+  const inProgressCount = bookings.filter(b => {
+    const status = getBookingStatus(b);
+    return status.status === 'IN_PROGRESS';
+  }).length;
+  const confirmedCount = bookings.filter(b => {
+    const status = getBookingStatus(b);
+    return status.status === 'CONFIRMED' || status.status === 'IN_PROGRESS';
+  }).length;
   const totalRevenue = bookings
-    .filter(b => b.status === 'CONFIRMED' || b.status === 'COMPLETED')
+    .filter(b => b.status !== 'PENDING' && b.status !== 'CANCELLED')
     .reduce((sum, b) => sum + (b.totalPrice || 0), 0);
 
   // Recherche et filtrage
@@ -319,27 +353,26 @@ export default function AgencyDashboard() {
             {bookings.length === 0 ? (
               <p className="text-center py-8 text-slate-400">Aucune réservation</p>
             ) : (
-              bookings.slice(0, 4).map(booking => (
-                <div key={booking.id} className="flex items-center gap-4 py-4 border-b border-slate-50 last:border-0">
-                  <div className="w-14 h-14 bg-slate-100 rounded-xl overflow-hidden relative">
-                    <Image src={booking.car?.image || "/assets/car1.jpeg"} fill className="object-cover" alt="" />
+              bookings.slice(0, 4).map(booking => {
+                const statusInfo = getBookingStatus(booking);
+                return (
+                  <div key={booking.id} className="flex items-center gap-4 py-4 border-b border-slate-50 last:border-0">
+                    <div className="w-14 h-14 bg-slate-100 rounded-xl overflow-hidden relative">
+                      <Image src={booking.car?.image || "/assets/car1.jpeg"} fill className="object-cover" alt="" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-slate-800">{booking.car?.name}</h4>
+                      <p className="text-sm text-slate-500">Client #{booking.userId}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-slate-900">{booking.totalPrice?.toLocaleString()} CFA</p>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusInfo.color}`}>
+                        {statusInfo.label}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-slate-800">{booking.car?.name}</h4>
-                    <p className="text-sm text-slate-500">Client #{booking.userId}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-slate-900">{booking.totalPrice?.toLocaleString()} CFA</p>
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${booking.status === 'PENDING' ? 'bg-orange-100 text-orange-600' :
-                      booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-600' :
-                        'bg-slate-100 text-slate-500'
-                      }`}>
-                      {booking.status === 'PENDING' ? 'En attente' :
-                        booking.status === 'CONFIRMED' ? 'Confirmé' : booking.status}
-                    </span>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -354,62 +387,69 @@ export default function AgencyDashboard() {
               <h3 className="text-lg font-semibold text-slate-400">Aucune réservation</h3>
             </div>
           ) : (
-            bookings.map(booking => (
-              <div key={booking.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col lg:flex-row justify-between items-center gap-5">
-                <div className="flex items-center gap-4 w-full lg:w-auto">
-                  <div className="w-16 h-16 bg-slate-100 rounded-xl overflow-hidden relative">
-                    <Image src={booking.car?.image || "/assets/car1.jpeg"} fill className="object-cover" alt="" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-slate-900">{booking.car?.name || "Véhicule"}</h3>
-                      {booking.withDriver && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded text-white" style={{ backgroundColor: COLORS.accent }}>
-                          + Chauffeur
-                        </span>
-                      )}
+            bookings.map(booking => {
+              const statusInfo = getBookingStatus(booking);
+              return (
+                <div key={booking.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col lg:flex-row justify-between items-center gap-5">
+                  <div className="flex items-center gap-4 w-full lg:w-auto">
+                    <div className="w-16 h-16 bg-slate-100 rounded-xl overflow-hidden relative">
+                      <Image src={booking.car?.image || "/assets/car1.jpeg"} fill className="object-cover" alt="" />
                     </div>
-                    <p className="text-sm text-slate-500">Client #{booking.userId}</p>
-                    <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                      <Clock size={12} />
-                      {new Date(booking.startDate).toLocaleDateString()} → {new Date(booking.endDate).toLocaleDateString()}
-                    </p>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-slate-900">{booking.car?.name || "Véhicule"}</h3>
+                        {booking.withDriver && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded text-white" style={{ backgroundColor: COLORS.accent }}>
+                            + Chauffeur
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-500">Client #{booking.userId}</p>
+                      <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                        <Clock size={12} />
+                        {new Date(booking.startDate).toLocaleDateString()} → {new Date(booking.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-center lg:text-right">
+                    <p className="font-bold text-xl text-slate-900">{booking.totalPrice?.toLocaleString()} <span className="text-sm font-normal text-slate-400">CFA</span></p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {booking.status === 'PENDING' ? (
+                      <>
+                        <button
+                          onClick={() => handleStatusChange(booking.id, 'CONFIRMED')}
+                          className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 transition"
+                        >
+                          <CheckCircle size={16} /> Accepter
+                        </button>
+                        <button
+                          onClick={() => handleStatusChange(booking.id, 'CANCELLED')}
+                          className="bg-white border border-slate-200 text-slate-500 hover:border-red-200 hover:text-red-500 px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 transition"
+                        >
+                          <XCircle size={16} /> Refuser
+                        </button>
+                      </>
+                    ) : (
+                      <div className={`px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 ${statusInfo.color}`}>
+                        {statusInfo.status === 'IN_PROGRESS' ? (
+                          <Clock size={16} />
+                        ) : statusInfo.status === 'CONFIRMED' ? (
+                          <CheckCircle size={16} />
+                        ) : statusInfo.status === 'COMPLETED' ? (
+                          <CheckCircle size={16} />
+                        ) : (
+                          <XCircle size={16} />
+                        )}
+                        {statusInfo.label}
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                <div className="text-center lg:text-right">
-                  <p className="font-bold text-xl text-slate-900">{booking.totalPrice?.toLocaleString()} <span className="text-sm font-normal text-slate-400">CFA</span></p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {booking.status === 'PENDING' ? (
-                    <>
-                      <button
-                        onClick={() => handleStatusChange(booking.id, 'CONFIRMED')}
-                        className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 transition"
-                      >
-                        <CheckCircle size={16} /> Accepter
-                      </button>
-                      <button
-                        onClick={() => handleStatusChange(booking.id, 'CANCELLED')}
-                        className="bg-white border border-slate-200 text-slate-500 hover:border-red-200 hover:text-red-500 px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 transition"
-                      >
-                        <XCircle size={16} /> Refuser
-                      </button>
-                    </>
-                  ) : (
-                    <div className={`px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 ${booking.status === 'CONFIRMED' ? 'bg-green-50 text-green-700' :
-                      booking.status === 'COMPLETED' ? 'bg-blue-50 text-blue-700' :
-                        'bg-slate-50 text-slate-400'
-                      }`}>
-                      {booking.status === 'CONFIRMED' ? <CheckCircle size={16} /> : <XCircle size={16} />}
-                      {booking.status === 'CONFIRMED' ? 'Confirmé' :
-                        booking.status === 'COMPLETED' ? 'Terminé' : 'Annulé'}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}

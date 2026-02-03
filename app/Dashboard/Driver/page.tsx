@@ -89,9 +89,42 @@ export default function DriverDashboard() {
     }
   };
 
-  // Statistiques
-  const pendingCourses = courses.filter(c => c.status === 'PENDING' || c.status === 'CONFIRMED');
-  const completedCourses = courses.filter(c => c.status === 'COMPLETED');
+  // Fonction pour calculer le statut dynamique basé sur les dates
+  const getCourseStatus = (course: CourseType): { status: string; label: string; color: string } => {
+    // Si le statut est PENDING ou CANCELLED, on le garde tel quel
+    if (course.status === 'PENDING') {
+      return { status: 'PENDING', label: 'En attente', color: 'bg-orange-100 text-orange-600' };
+    }
+    if (course.status === 'CANCELLED') {
+      return { status: 'CANCELLED', label: 'Annulé', color: 'bg-red-100 text-red-600' };
+    }
+
+    // Pour les courses confirmées, calculer le statut basé sur les dates
+    const now = new Date();
+    const startDate = new Date(course.startDate);
+    const endDate = new Date(course.endDate);
+
+    if (now < startDate) {
+      // Avant la période de début → Confirmé
+      return { status: 'CONFIRMED', label: 'Confirmée', color: 'bg-green-100 text-green-600' };
+    } else if (now >= startDate && now <= endDate) {
+      // Pendant la période → En cours
+      return { status: 'IN_PROGRESS', label: 'En cours', color: 'bg-blue-100 text-blue-600' };
+    } else {
+      // Après la période de fin → Terminé
+      return { status: 'COMPLETED', label: 'Terminée', color: 'bg-slate-100 text-slate-600' };
+    }
+  };
+
+  // Statistiques - basées sur les statuts dynamiques
+  const pendingCourses = courses.filter(c => {
+    const status = getCourseStatus(c);
+    return status.status === 'PENDING' || status.status === 'CONFIRMED' || status.status === 'IN_PROGRESS';
+  });
+  const completedCourses = courses.filter(c => {
+    const status = getCourseStatus(c);
+    return status.status === 'COMPLETED';
+  });
   const totalEarnings = completedCourses.reduce((sum, c) => sum + ((c.totalPrice || 0) * 0.3), 0);
 
   if (loading) {
@@ -262,23 +295,25 @@ export default function DriverDashboard() {
                 <p className="text-sm">Aucune course en attente</p>
               </div>
             ) : (
-              pendingCourses.slice(0, 4).map(course => (
-                <div key={course.id} className="flex items-center gap-4 py-3 border-b border-slate-50 last:border-0">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}15` }}>
-                    <Car style={{ color: COLORS.primary }} size={20} />
+              pendingCourses.slice(0, 4).map(course => {
+                const statusInfo = getCourseStatus(course);
+                return (
+                  <div key={course.id} className="flex items-center gap-4 py-3 border-b border-slate-50 last:border-0">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}15` }}>
+                      <Car style={{ color: COLORS.primary }} size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-slate-800">{course.car?.name || "Course"}</h4>
+                      <p className="text-xs text-slate-500">
+                        {new Date(course.startDate).toLocaleDateString()} - {new Date(course.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}>
+                      {statusInfo.label}
+                    </span>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-slate-800">{course.car?.name || "Course"}</h4>
-                    <p className="text-xs text-slate-500">
-                      {new Date(course.startDate).toLocaleDateString()} - {new Date(course.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${course.status === 'PENDING' ? 'text-white' : 'bg-green-100 text-green-600'
-                    }`} style={course.status === 'PENDING' ? { backgroundColor: COLORS.accent } : {}}>
-                    {course.status === 'PENDING' ? 'En attente' : 'Confirmée'}
-                  </span>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -298,30 +333,32 @@ export default function DriverDashboard() {
               </p>
             </div>
           ) : (
-            pendingCourses.map(course => (
-              <div key={course.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-slate-100 rounded-xl overflow-hidden relative">
-                      <Image src={course.car?.image || "/assets/car1.jpeg"} fill className="object-cover" alt="" />
+            pendingCourses.map(course => {
+              const statusInfo = getCourseStatus(course);
+              return (
+                <div key={course.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-slate-100 rounded-xl overflow-hidden relative">
+                        <Image src={course.car?.image || "/assets/car1.jpeg"} fill className="object-cover" alt="" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-slate-900">{course.car?.name}</h3>
+                        <p className="text-sm text-slate-500">Client #{course.userId}</p>
+                        <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                          <Calendar size={12} />
+                          {new Date(course.startDate).toLocaleDateString()} → {new Date(course.endDate).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-900">{course.car?.name}</h3>
-                      <p className="text-sm text-slate-500">Client #{course.userId}</p>
-                      <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
-                        <Calendar size={12} />
-                        {new Date(course.startDate).toLocaleDateString()} → {new Date(course.endDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
 
-                  <span className={`px-4 py-2 rounded-xl text-sm font-semibold ${course.status === 'PENDING' ? 'text-white' : 'bg-green-100 text-green-700'
-                    }`} style={course.status === 'PENDING' ? { backgroundColor: COLORS.accent } : {}}>
-                    {course.status === 'PENDING' ? 'Nouvelle demande' : 'Confirmée'}
-                  </span>
+                    <span className={`px-4 py-2 rounded-xl text-sm font-semibold ${statusInfo.color}`}>
+                      {statusInfo.label}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
