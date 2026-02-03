@@ -15,7 +15,8 @@ import {
     Search, Edit2, ChevronDown, Calendar, Car, Trash2, User,
     Mail, MapPin, Lock, Smartphone, CreditCard, BellRing, Globe,
     Moon, Shield, FileText, HelpCircle, ChevronRight, ArrowLeft,
-    Sun, Monitor, Crown, Menu, X, CalendarClock, ShieldCheck // Ajout de CalendarClock, Menu, X, ShieldCheck
+    Sun, Monitor, Crown, Menu, X, CalendarClock, ShieldCheck,
+    Building2, UserCheck // Dashboards Agence et Chauffeur
 } from "lucide-react";
 
 // --- DONNÉES FACTICES ---
@@ -718,6 +719,24 @@ function ProfilePageContent() {
                                 <Link href="/Admin" className="block">
                                     <button className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium bg-gradient-to-r from-[#002AD7] to-[#0044ff] text-white hover:shadow-lg transition-all shadow-md">
                                         <ShieldCheck className="w-5 h-5" /> Dashboard Admin
+                                    </button>
+                                </Link>
+                            )}
+
+                            {/* LIEN DASHBOARD AGENCE - Visible uniquement pour les AGENCY */}
+                            {user?.role === "AGENCY" && (
+                                <Link href="/Dashboard/Agency" className="block">
+                                    <button className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg transition-all shadow-md">
+                                        <Building2 className="w-5 h-5" /> Dashboard Agence
+                                    </button>
+                                </Link>
+                            )}
+
+                            {/* LIEN DASHBOARD CHAUFFEUR - Visible uniquement pour les DRIVER */}
+                            {user?.role === "DRIVER" && (
+                                <Link href="/Dashboard/Driver" className="block">
+                                    <button className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-lg transition-all shadow-md">
+                                        <UserCheck className="w-5 h-5" /> Dashboard Chauffeur
                                     </button>
                                 </Link>
                             )}
