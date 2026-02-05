@@ -5,7 +5,7 @@ import AdminLayout from "@/components/AdminLayout";
 import { useEffect, useState } from "react";
 import { driverService } from "@/services/api";
 import api from "@/services/api";
-import { Car, Search, Star, Trash2, Phone, Mail, Plus, X, Edit2, User, MapPin, Shield } from "lucide-react";
+import { Car, Search, Star, Trash2, Phone, Mail, Plus, X, Edit2, User, Shield, Copy, CheckCircle } from "lucide-react";
 
 interface Driver {
     id: number;
@@ -18,6 +18,12 @@ interface Driver {
     experience?: number;
 }
 
+interface GeneratedCredentials {
+    email: string;
+    password: string;
+    driverName: string;
+}
+
 export default function DriversManagement() {
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [loading, setLoading] = useState(true);
@@ -26,7 +32,11 @@ export default function DriversManagement() {
     // Modal states
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showCredentialsModal, setShowCredentialsModal] = useState(false);
     const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+    const [generatedCredentials, setGeneratedCredentials] = useState<GeneratedCredentials | null>(null);
+    const [copiedField, setCopiedField] = useState<string | null>(null);
+    const [isCreating, setIsCreating] = useState(false);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -48,15 +58,31 @@ export default function DriversManagement() {
         }
     };
 
+    // 🔥 Création avec génération automatique d'identifiants
     const handleAddDriver = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsCreating(true);
         try {
-            await api.post("/drivers", formData);
+            // L'endpoint POST /drivers génère automatiquement les identifiants
+            const response = await api.post("/drivers", formData);
+
+            // Récupérer les identifiants générés depuis DriverCreationResponse
+            const { driver, email, generatedPassword } = response.data;
+
+            setGeneratedCredentials({
+                email: email,
+                password: generatedPassword,
+                driverName: formData.fullName
+            });
+
             setShowAddModal(false);
+            setShowCredentialsModal(true);
             resetForm();
             fetchDrivers();
         } catch (error: any) {
-            alert(error.response?.data?.message || "Erreur lors de la création");
+            alert(error.response?.data?.message || "Erreur lors de la création du chauffeur");
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -113,6 +139,12 @@ export default function DriversManagement() {
         });
     };
 
+    const copyToClipboard = (text: string, field: string) => {
+        navigator.clipboard.writeText(text);
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(null), 2000);
+    };
+
     const filteredDrivers = drivers.filter(driver =>
         driver.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         driver.phone?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -124,7 +156,7 @@ export default function DriversManagement() {
                 <AdminLayout>
                     <div className="flex items-center justify-center h-[60vh]">
                         <div className="text-center">
-                            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                            <div className="w-16 h-16 border-4 border-[#002AD7] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                             <p className="text-slate-500 font-medium">Chargement des chauffeurs...</p>
                         </div>
                     </div>
@@ -149,7 +181,7 @@ export default function DriversManagement() {
                         </div>
                         <button
                             onClick={() => { resetForm(); setShowAddModal(true); }}
-                            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:scale-105 transition-all"
+                            className="flex items-center gap-2 bg-gradient-to-r from-[#002AD7] to-[#0044ff] text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-105 transition-all"
                         >
                             <Plus size={20} /> Ajouter un chauffeur
                         </button>
@@ -157,22 +189,22 @@ export default function DriversManagement() {
 
                     {/* Stats Cards */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl shadow-xl p-5 text-white">
+                        <div className="bg-gradient-to-br from-[#002AD7] to-[#0044ff] rounded-2xl shadow-xl p-5 text-white">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-emerald-200 text-sm font-medium">Total</p>
+                                    <p className="text-blue-200 text-sm font-medium">Total</p>
                                     <p className="text-3xl font-black">{drivers.length}</p>
                                 </div>
-                                <Car size={28} className="text-emerald-300" />
+                                <Car size={28} className="text-blue-300" />
                             </div>
                         </div>
-                        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl p-5 text-white">
+                        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-xl p-5 text-white">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-blue-200 text-sm font-medium">Disponibles</p>
+                                    <p className="text-emerald-200 text-sm font-medium">Disponibles</p>
                                     <p className="text-3xl font-black">{drivers.filter(d => d.available).length}</p>
                                 </div>
-                                <Shield size={28} className="text-blue-300" />
+                                <Shield size={28} className="text-emerald-300" />
                             </div>
                         </div>
                         <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-xl p-5 text-white">
@@ -208,7 +240,7 @@ export default function DriversManagement() {
                                 placeholder="Rechercher par nom ou téléphone..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#002AD7] focus:border-transparent outline-none transition-all"
                             />
                         </div>
                     </div>
@@ -227,7 +259,7 @@ export default function DriversManagement() {
                                     className="bg-white rounded-2xl border border-slate-100 shadow-lg hover:shadow-xl transition-all overflow-hidden"
                                 >
                                     {/* Header */}
-                                    <div className={`px-5 py-4 flex items-center justify-between ${driver.available ? 'bg-gradient-to-r from-emerald-500 to-emerald-700' : 'bg-gradient-to-r from-slate-500 to-slate-700'}`}>
+                                    <div className={`px-5 py-4 flex items-center justify-between ${driver.available ? 'bg-gradient-to-r from-[#002AD7] to-[#0044ff]' : 'bg-gradient-to-r from-slate-500 to-slate-700'}`}>
                                         <div className="flex items-center gap-3">
                                             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white text-xl font-bold">
                                                 {driver.fullName?.charAt(0).toUpperCase() || "?"}
@@ -284,9 +316,9 @@ export default function DriversManagement() {
 
                                         {/* Experience */}
                                         {driver.experience && (
-                                            <div className="text-center p-3 bg-emerald-50 rounded-xl">
-                                                <p className="text-2xl font-black text-emerald-600">{driver.experience}</p>
-                                                <p className="text-xs text-emerald-700 font-bold">années d'expérience</p>
+                                            <div className="text-center p-3 bg-blue-50 rounded-xl">
+                                                <p className="text-2xl font-black text-[#002AD7]">{driver.experience}</p>
+                                                <p className="text-xs text-blue-700 font-bold">années d'expérience</p>
                                             </div>
                                         )}
 
@@ -294,7 +326,7 @@ export default function DriversManagement() {
                                         <div className="flex gap-2 pt-3 border-t border-slate-100">
                                             <button
                                                 onClick={() => openEditModal(driver)}
-                                                className="flex-1 flex items-center justify-center gap-2 bg-emerald-100 hover:bg-emerald-600 hover:text-white text-emerald-700 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                                                className="flex-1 flex items-center justify-center gap-2 bg-blue-100 hover:bg-[#002AD7] hover:text-white text-blue-700 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
                                             >
                                                 <Edit2 size={14} /> Modifier
                                             </button>
@@ -316,13 +348,16 @@ export default function DriversManagement() {
                 {showAddModal && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
-                            <div className="bg-gradient-to-r from-emerald-500 to-emerald-700 p-6 text-white sticky top-0">
+                            <div className="bg-gradient-to-r from-[#002AD7] to-[#0044ff] p-6 text-white sticky top-0">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-xl font-bold">➕ Nouveau Chauffeur</h2>
                                     <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition">
                                         <X size={20} />
                                     </button>
                                 </div>
+                                <p className="text-blue-200 text-sm mt-2">
+                                    💡 Des identifiants de connexion seront générés automatiquement
+                                </p>
                             </div>
                             <form onSubmit={handleAddDriver} className="p-6 space-y-4">
                                 <div>
@@ -332,7 +367,7 @@ export default function DriversManagement() {
                                         required
                                         value={formData.fullName}
                                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002AD7] outline-none"
                                         placeholder="Jean-Pierre Mbarga"
                                     />
                                 </div>
@@ -343,29 +378,30 @@ export default function DriversManagement() {
                                             type="tel"
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002AD7] outline-none"
                                             placeholder="+237 6XX XXX XXX"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">Email</label>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Email de contact</label>
                                         <input
                                             type="email"
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002AD7] outline-none"
                                             placeholder="chauffeur@email.cm"
                                         />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">N° Permis</label>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">N° Permis *</label>
                                         <input
                                             type="text"
+                                            required
                                             value={formData.licenseNumber}
                                             onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002AD7] outline-none"
                                             placeholder="ABC123456"
                                         />
                                     </div>
@@ -376,7 +412,7 @@ export default function DriversManagement() {
                                             min="0"
                                             value={formData.experience}
                                             onChange={(e) => setFormData({ ...formData, experience: parseInt(e.target.value) || 0 })}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002AD7] outline-none"
                                         />
                                     </div>
                                 </div>
@@ -386,7 +422,7 @@ export default function DriversManagement() {
                                             type="checkbox"
                                             checked={formData.available}
                                             onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
-                                            className="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500"
+                                            className="w-5 h-5 rounded text-[#002AD7] focus:ring-[#002AD7]"
                                         />
                                         <span className="font-semibold text-slate-700">Disponible immédiatement</span>
                                     </label>
@@ -401,12 +437,73 @@ export default function DriversManagement() {
                                     </button>
                                     <button
                                         type="submit"
-                                        className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition"
+                                        disabled={isCreating}
+                                        className="flex-1 px-4 py-3 bg-gradient-to-r from-[#002AD7] to-[#0044ff] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition disabled:opacity-50"
                                     >
-                                        Créer
+                                        {isCreating ? "Création..." : "Créer"}
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL: Generated Credentials */}
+                {showCredentialsModal && generatedCredentials && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-in fade-in zoom-in duration-200">
+                            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 text-white rounded-t-3xl">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                                        <CheckCircle size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold">✅ Chauffeur créé !</h2>
+                                        <p className="text-emerald-100 text-sm">{generatedCredentials.driverName}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                                    <p className="text-amber-800 text-sm font-medium">
+                                        ⚠️ Important : Notez ces identifiants de connexion. Ils ne seront plus affichés !
+                                    </p>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="bg-slate-50 rounded-xl p-4">
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">EMAIL DE CONNEXION</label>
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-mono text-slate-800">{generatedCredentials.email}</span>
+                                            <button
+                                                onClick={() => copyToClipboard(generatedCredentials.email, 'email')}
+                                                className="p-2 hover:bg-slate-200 rounded-lg transition"
+                                            >
+                                                {copiedField === 'email' ? <CheckCircle size={18} className="text-emerald-500" /> : <Copy size={18} className="text-slate-400" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-50 rounded-xl p-4">
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">MOT DE PASSE</label>
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-mono text-slate-800">{generatedCredentials.password}</span>
+                                            <button
+                                                onClick={() => copyToClipboard(generatedCredentials.password, 'password')}
+                                                className="p-2 hover:bg-slate-200 rounded-lg transition"
+                                            >
+                                                {copiedField === 'password' ? <CheckCircle size={18} className="text-emerald-500" /> : <Copy size={18} className="text-slate-400" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => { setShowCredentialsModal(false); setGeneratedCredentials(null); }}
+                                    className="w-full px-4 py-3 bg-gradient-to-r from-[#002AD7] to-[#0044ff] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition"
+                                >
+                                    J'ai noté les identifiants
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

@@ -233,11 +233,13 @@ const NotificationsView = () => {
 // --- COMPOSANT TRANSACTIONS VIEW CORRIGÉ ---
 const TransactionsView = ({ type }: { type: 'locations' | 'payments' }) => {
     const { user } = useAuth();
+    const { addNotification } = useNotification();
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [cancellingId, setCancellingId] = useState<number | null>(null);
 
-    useEffect(() => {
+    const loadData = () => {
         if (!user || !user.id) return;
 
         setLoading(true);
@@ -257,21 +259,72 @@ const TransactionsView = ({ type }: { type: 'locations' | 'payments' }) => {
                 })
                 .finally(() => setLoading(false));
         } else if (type === 'payments') {
-            // Fetch payments
-            const { paymentService } = require('@/services/api');
-            paymentService.getByUser(user.id)
-                .then((res: any) => setData(res.data))
+            // Afficher les réservations payées (CONFIRMED + COMPLETED) comme transactions
+            bookingService.getByUser(user.id)
+                .then((res: any) => {
+                    // Filtrer uniquement les réservations confirmées ou terminées (= payées)
+                    const paidBookings = res.data.filter((b: any) =>
+                        b.status === 'CONFIRMED' || b.status === 'COMPLETED'
+                    );
+                    // Transformer en format "transaction"
+                    const transactions = paidBookings.map((booking: any) => ({
+                        id: booking.id,
+                        description: `Location ${booking.car?.name || booking.car?.brand + ' ' + booking.car?.model}`,
+                        amount: booking.totalPrice,
+                        status: booking.status === 'COMPLETED' ? 'COMPLETED' : 'CONFIRMED',
+                        createdAt: booking.createdAt || booking.startDate,
+                        bookingId: booking.id,
+                        car: booking.car
+                    }));
+                    const sorted = transactions.sort((a: any, b: any) =>
+                        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                    );
+                    setData(sorted);
+                })
                 .catch((err: any) => {
                     console.error("Error payments", err);
-                    setData([]); // Retourner une liste vide si erreur
+                    setData([]);
                 })
                 .finally(() => setLoading(false));
         }
+    };
+
+    useEffect(() => {
+        loadData();
     }, [user, type]);
 
     const formatDate = (dateString: string) => {
         if (!dateString) return "-";
         return new Date(dateString).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
+
+    // Vérifier si une réservation peut être annulée
+    const canCancel = (booking: any) => {
+        if (booking.status === 'CANCELLED' || booking.status === 'COMPLETED') return false;
+        // Vérifier si la réservation a déjà commencé
+        const startDate = new Date(booking.startDate);
+        return startDate > new Date();
+    };
+
+    // Annuler une réservation
+    const handleCancel = async (bookingId: number) => {
+        if (!user?.id) return;
+
+        const confirmed = window.confirm("Êtes-vous sûr de vouloir annuler cette réservation ?");
+        if (!confirmed) return;
+
+        setCancellingId(bookingId);
+        try {
+            await bookingService.cancel(bookingId, user.id);
+            addNotification("success", "Réservation annulée avec succès !");
+            loadData(); // Recharger les données
+        } catch (err: any) {
+            console.error("Erreur annulation:", err);
+            const message = err.response?.data?.message || "Erreur lors de l'annulation";
+            addNotification("error", message);
+        } finally {
+            setCancellingId(null);
+        }
     };
 
     // Stats
@@ -316,15 +369,16 @@ const TransactionsView = ({ type }: { type: 'locations' | 'payments' }) => {
                                 <th className="py-4 px-6 font-semibold text-sm">Date</th>
                                 <th className="py-4 px-6 font-semibold text-sm">Statut</th>
                                 <th className="py-4 px-6 font-semibold text-sm text-right">Montant</th>
+                                {type === 'locations' && <th className="py-4 px-6 font-semibold text-sm text-center">Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {loading ? (
-                                <tr><td colSpan={4} className="py-8 text-center text-slate-500">Chargement...</td></tr>
+                                <tr><td colSpan={5} className="py-8 text-center text-slate-500">Chargement...</td></tr>
                             ) : error ? (
-                                <tr><td colSpan={4} className="py-8 text-center text-red-500">{error}</td></tr>
+                                <tr><td colSpan={5} className="py-8 text-center text-red-500">{error}</td></tr>
                             ) : data.length === 0 ? (
-                                <tr><td colSpan={4} className="py-8 text-center text-slate-500">Aucune donnée trouvée.</td></tr>
+                                <tr><td colSpan={5} className="py-8 text-center text-slate-500">Aucune donnée trouvée.</td></tr>
                             ) : (
                                 data.map((item) => (
                                     <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
@@ -335,15 +389,31 @@ const TransactionsView = ({ type }: { type: 'locations' | 'payments' }) => {
                                                         <Image src={item.car?.image || "/assets/car1.jpeg"} fill alt="Car" className="object-cover" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-slate-800">{item.car?.name}</p>
+                                                        <p className="font-bold text-slate-800">{item.car?.name || item.car?.brand + ' ' + item.car?.model}</p>
+                                                        <p className="text-xs text-slate-500">{item.car?.agency?.name || 'Agence'}</p>
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="font-medium text-slate-800">{item.description || "Paiement"}</div>
+                                                <div className="flex items-center gap-3">
+                                                    {item.car && (
+                                                        <div className="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden relative">
+                                                            <Image src={item.car?.image || "/assets/car1.jpeg"} fill alt="Car" className="object-cover" />
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <p className="font-bold text-slate-800">{item.description || "Paiement"}</p>
+                                                        {item.car?.agency?.name && (
+                                                            <p className="text-xs text-slate-500">{item.car.agency.name}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             )}
                                         </td>
                                         <td className="py-4 px-6 text-sm">
-                                            {formatDate(type === 'locations' ? item.startDate : item.createdAt)}
+                                            <div>{formatDate(type === 'locations' ? item.startDate : item.createdAt)}</div>
+                                            {type === 'locations' && item.endDate && (
+                                                <div className="text-xs text-slate-400">→ {formatDate(item.endDate)}</div>
+                                            )}
                                         </td>
                                         <td className="py-4 px-6">
                                             <span className={`px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5
@@ -356,12 +426,51 @@ const TransactionsView = ({ type }: { type: 'locations' | 'payments' }) => {
                                                     ${(item.status === 'PENDING') ? 'bg-orange-500' : ''}
                                                     ${(item.status === 'CANCELLED' || item.status === 'FAILED') ? 'bg-red-500' : ''}
                                                 `}></span>
-                                                {item.status}
+                                                {item.status === 'PENDING' && 'En attente'}
+                                                {item.status === 'CONFIRMED' && 'Confirmée'}
+                                                {item.status === 'COMPLETED' && 'Terminée'}
+                                                {item.status === 'CANCELLED' && 'Annulée'}
+                                                {!['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'].includes(item.status) && item.status}
                                             </span>
                                         </td>
                                         <td className="py-4 px-6 text-right font-bold text-slate-800">
                                             {(type === 'locations' ? item.totalPrice : item.amount)?.toLocaleString()} CFA
                                         </td>
+                                        {type === 'locations' && (
+                                            <td className="py-4 px-6">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    {/* Bouton Payer pour PENDING */}
+                                                    {item.status === 'PENDING' && (
+                                                        <Link
+                                                            href={`/Checkout?amount=${item.totalPrice}&bookingId=${item.id}&description=Location ${item.car?.name || item.car?.brand}`}
+                                                            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
+                                                        >
+                                                            <CreditCard size={14} /> Payer
+                                                        </Link>
+                                                    )}
+                                                    {/* Bouton Annuler */}
+                                                    {canCancel(item) && (
+                                                        <button
+                                                            onClick={() => handleCancel(item.id)}
+                                                            disabled={cancellingId === item.id}
+                                                            className="px-3 py-1.5 bg-red-50 text-red-600 text-xs font-bold rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                                        >
+                                                            {cancellingId === item.id ? (
+                                                                <span className="animate-pulse">...</span>
+                                                            ) : (
+                                                                <>
+                                                                    <X size={14} /> Annuler
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                    )}
+                                                    {/* Afficher "-" si pas d'actions disponibles */}
+                                                    {!canCancel(item) && item.status !== 'PENDING' && (
+                                                        <span className="text-slate-400 text-xs">-</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             )}

@@ -202,6 +202,21 @@ export const driverService = {
     }
     return api.get(`/drivers/${id}`);
   },
+  create: async (data: any) => {
+    if (USE_MOCK_DATA) {
+      await delay(500);
+      return mockResponse({
+        driver: { ...data, id: Date.now() },
+        email: data.fullName.toLowerCase().replace(/\s+/g, '.') + "@driver.com",
+        rawPassword: "DriverPass123!"
+      });
+    }
+    return api.post('/drivers', data);
+  },
+  delete: async (id: number) => {
+    if (USE_MOCK_DATA) return mockResponse({ success: true });
+    return api.delete(`/drivers/${id}`);
+  }
 };
 
 // ============================================
@@ -224,6 +239,26 @@ export const agencyService = {
     }
     return api.get(`/agencies/${id}`);
   },
+  create: async (data: any) => {
+    if (USE_MOCK_DATA) {
+      await delay(500);
+      const newAgency = { ...data, id: mockAgencies.length + 1 };
+      mockAgencies.push(newAgency);
+      return mockResponse({
+        agency: newAgency,
+        email: data.name.toLowerCase().replace(/\s+/g, '') + "@easyrent.com",
+        rawPassword: "Password123!"
+      });
+    }
+    return api.post('/agencies', data);
+  },
+  delete: async (id: number) => {
+    if (USE_MOCK_DATA) {
+      await delay(300);
+      return mockResponse({ success: true });
+    }
+    return api.delete(`/admin/agencies/${id}`);
+  }
 };
 
 // ============================================
@@ -317,15 +352,25 @@ export const bookingService = {
   },
 
   confirm: async (id: number) => {
-    return bookingService.updateStatus(id, "CONFIRMED");
+    if (USE_MOCK_DATA) {
+      return bookingService.updateStatus(id, "CONFIRMED");
+    }
+    return api.put(`/bookings/${id}/confirm`);
   },
 
-  cancel: async (id: number) => {
-    return bookingService.updateStatus(id, "CANCELLED");
+  cancel: async (id: number, userId?: number) => {
+    if (USE_MOCK_DATA) {
+      return bookingService.updateStatus(id, "CANCELLED");
+    }
+    // Le backend nécessite userId pour vérifier la propriété
+    return api.put(`/bookings/${id}/cancel`, null, { params: { userId } });
   },
 
   complete: async (id: number) => {
-    return bookingService.updateStatus(id, "COMPLETED");
+    if (USE_MOCK_DATA) {
+      return bookingService.updateStatus(id, "COMPLETED");
+    }
+    return api.put(`/bookings/${id}/complete`);
   },
 
   checkAvailability: async (carId: number, startDate: string, endDate: string) => {

@@ -5,7 +5,7 @@ import AdminLayout from "@/components/AdminLayout";
 import { useEffect, useState } from "react";
 import { agencyService } from "@/services/api";
 import api from "@/services/api";
-import { Building2, Search, MapPin, Star, Trash2, Phone, Mail, Plus, X, Edit2, Globe, Clock } from "lucide-react";
+import { Building2, Search, MapPin, Star, Trash2, Phone, Mail, Plus, X, Edit2, Globe, Clock, Copy, CheckCircle } from "lucide-react";
 
 interface Agency {
     id: number;
@@ -22,6 +22,12 @@ interface Agency {
     openingHours?: string;
 }
 
+interface GeneratedCredentials {
+    email: string;
+    password: string;
+    agencyName: string;
+}
+
 export default function AgenciesManagement() {
     const [agencies, setAgencies] = useState<Agency[]>([]);
     const [loading, setLoading] = useState(true);
@@ -30,13 +36,107 @@ export default function AgenciesManagement() {
     // Modal states
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showCredentialsModal, setShowCredentialsModal] = useState(false);
     const [selectedAgency, setSelectedAgency] = useState<Agency | null>(null);
+    const [generatedCredentials, setGeneratedCredentials] = useState<GeneratedCredentials | null>(null);
+    const [copiedField, setCopiedField] = useState<string | null>(null);
+    const [isCreating, setIsCreating] = useState(false);
+
+    // Jours de la semaine
+    const DAYS = [
+        { key: 'lun', label: 'Lun', full: 'Lundi' },
+        { key: 'mar', label: 'Mar', full: 'Mardi' },
+        { key: 'mer', label: 'Mer', full: 'Mercredi' },
+        { key: 'jeu', label: 'Jeu', full: 'Jeudi' },
+        { key: 'ven', label: 'Ven', full: 'Vendredi' },
+        { key: 'sam', label: 'Sam', full: 'Samedi' },
+        { key: 'dim', label: 'Dim', full: 'Dimanche' }
+    ];
+
+    // État des horaires d'ouverture structurés
+    const [openingSchedule, setOpeningSchedule] = useState<{
+        [key: string]: { isOpen: boolean; openTime: string; closeTime: string }
+    }>({
+        lun: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+        mar: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+        mer: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+        jeu: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+        ven: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+        sam: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+        dim: { isOpen: false, openTime: '08:00', closeTime: '18:00' }
+    });
 
     // Form state
     const [formData, setFormData] = useState({
         name: "", city: "", location: "", description: "",
         phone: "", email: "", website: "", openingHours: "", open: true
     });
+
+    // Fonction pour formater les horaires en chaîne lisible et JSON
+    const formatOpeningHours = () => {
+        const schedule = openingSchedule;
+        const parts: string[] = [];
+
+        // Grouper les jours consécutifs avec les mêmes horaires
+        let i = 0;
+        while (i < DAYS.length) {
+            const day = DAYS[i];
+            const daySchedule = schedule[day.key];
+
+            if (!daySchedule.isOpen) {
+                i++;
+                continue;
+            }
+
+            // Trouver les jours consécutifs avec les mêmes horaires
+            let j = i + 1;
+            while (j < DAYS.length) {
+                const nextDay = DAYS[j];
+                const nextSchedule = schedule[nextDay.key];
+                if (nextSchedule.isOpen &&
+                    nextSchedule.openTime === daySchedule.openTime &&
+                    nextSchedule.closeTime === daySchedule.closeTime) {
+                    j++;
+                } else {
+                    break;
+                }
+            }
+
+            // Créer la chaîne
+            if (j - i > 1) {
+                // Plusieurs jours consécutifs
+                parts.push(`${DAYS[i].label}-${DAYS[j - 1].label} ${daySchedule.openTime}-${daySchedule.closeTime}`);
+            } else {
+                // Un seul jour
+                parts.push(`${day.label} ${daySchedule.openTime}-${daySchedule.closeTime}`);
+            }
+
+            i = j;
+        }
+
+        return parts.join(', ') || 'Fermé';
+    };
+
+    // Convertir le JSON en schedule
+    const parseOpeningHours = (hoursString: string) => {
+        try {
+            // Essayer de parser comme JSON d'abord
+            if (hoursString.startsWith('{')) {
+                return JSON.parse(hoursString);
+            }
+        } catch (e) {
+            // Sinon, retourner le schedule par défaut
+        }
+        return {
+            lun: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            mar: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            mer: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            jeu: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            ven: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            sam: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            dim: { isOpen: false, openTime: '08:00', closeTime: '18:00' }
+        };
+    };
 
     useEffect(() => {
         fetchAgencies();
@@ -53,15 +153,37 @@ export default function AgenciesManagement() {
         }
     };
 
+    // 🔥 Création avec génération automatique d'identifiants
     const handleAddAgency = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsCreating(true);
         try {
-            await api.post("/agencies", formData);
+            // Préparer les données avec les horaires structurés
+            const dataToSubmit = {
+                ...formData,
+                openingHours: JSON.stringify(openingSchedule) // Stocker en JSON pour parsing futur
+            };
+
+            // L'endpoint POST /agencies génère automatiquement les identifiants
+            const response = await api.post("/agencies", dataToSubmit);
+
+            // Récupérer les identifiants générés depuis AgencyCreationResponse
+            const { agency, email, generatedPassword } = response.data;
+
+            setGeneratedCredentials({
+                email: email,
+                password: generatedPassword,
+                agencyName: formData.name
+            });
+
             setShowAddModal(false);
+            setShowCredentialsModal(true);
             resetForm();
             fetchAgencies();
         } catch (error: any) {
-            alert(error.response?.data?.message || "Erreur lors de la création");
+            alert(error.response?.data?.message || "Erreur lors de la création de l'agence");
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -69,7 +191,12 @@ export default function AgenciesManagement() {
         e.preventDefault();
         if (!selectedAgency) return;
         try {
-            await api.put(`/agencies/${selectedAgency.id}`, formData);
+            // Préparer les données avec les horaires structurés
+            const dataToSubmit = {
+                ...formData,
+                openingHours: JSON.stringify(openingSchedule)
+            };
+            await api.put(`/agencies/${selectedAgency.id}`, dataToSubmit);
             setShowEditModal(false);
             setSelectedAgency(null);
             resetForm();
@@ -103,6 +230,8 @@ export default function AgenciesManagement() {
             openingHours: agency.openingHours || "",
             open: agency.open ?? true
         });
+        // Parser les horaires existants
+        setOpeningSchedule(parseOpeningHours(agency.openingHours || ""));
         setShowEditModal(true);
     };
 
@@ -111,6 +240,21 @@ export default function AgenciesManagement() {
             name: "", city: "", location: "", description: "",
             phone: "", email: "", website: "", openingHours: "", open: true
         });
+        setOpeningSchedule({
+            lun: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            mar: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            mer: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            jeu: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            ven: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            sam: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+            dim: { isOpen: false, openTime: '08:00', closeTime: '18:00' }
+        });
+    };
+
+    const copyToClipboard = (text: string, field: string) => {
+        navigator.clipboard.writeText(text);
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(null), 2000);
     };
 
     const filteredAgencies = agencies.filter(agency =>
@@ -126,7 +270,7 @@ export default function AgenciesManagement() {
                 <AdminLayout>
                     <div className="flex items-center justify-center h-[60vh]">
                         <div className="text-center">
-                            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                            <div className="w-16 h-16 border-4 border-[#002AD7] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                             <p className="text-slate-500 font-medium">Chargement des agences...</p>
                         </div>
                     </div>
@@ -151,7 +295,7 @@ export default function AgenciesManagement() {
                         </div>
                         <button
                             onClick={() => { resetForm(); setShowAddModal(true); }}
-                            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-800 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-purple-500/30 hover:shadow-xl hover:scale-105 transition-all"
+                            className="flex items-center gap-2 bg-gradient-to-r from-[#002AD7] to-[#0044ff] text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-105 transition-all"
                         >
                             <Plus size={20} /> Ajouter une agence
                         </button>
@@ -159,13 +303,13 @@ export default function AgenciesManagement() {
 
                     {/* Stats Cards */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl shadow-xl p-5 text-white">
+                        <div className="bg-gradient-to-br from-[#002AD7] to-[#0044ff] rounded-2xl shadow-xl p-5 text-white">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-purple-200 text-sm font-medium">Total</p>
+                                    <p className="text-blue-200 text-sm font-medium">Total</p>
                                     <p className="text-3xl font-black">{agencies.length}</p>
                                 </div>
-                                <Building2 size={28} className="text-purple-300" />
+                                <Building2 size={28} className="text-blue-300" />
                             </div>
                         </div>
                         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-xl p-5 text-white">
@@ -210,7 +354,7 @@ export default function AgenciesManagement() {
                                 placeholder="Rechercher par nom ou ville..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#002AD7] focus:border-transparent outline-none transition-all"
                             />
                         </div>
                     </div>
@@ -229,14 +373,14 @@ export default function AgenciesManagement() {
                                     className="bg-white rounded-2xl border border-slate-100 shadow-lg hover:shadow-xl transition-all overflow-hidden group"
                                 >
                                     {/* Header */}
-                                    <div className="bg-gradient-to-r from-purple-600 to-purple-800 px-5 py-4 flex items-center justify-between">
+                                    <div className="bg-gradient-to-r from-[#002AD7] to-[#0044ff] px-5 py-4 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
                                                 <Building2 size={24} className="text-white" />
                                             </div>
                                             <div>
                                                 <h3 className="font-bold text-white text-lg">{agency.name}</h3>
-                                                <div className="flex items-center gap-1 text-purple-200 text-sm">
+                                                <div className="flex items-center gap-1 text-blue-200 text-sm">
                                                     <MapPin size={12} /> {agency.city || "Non défini"}
                                                 </div>
                                             </div>
@@ -285,7 +429,7 @@ export default function AgenciesManagement() {
                                         <div className="flex gap-2 pt-3 border-t border-slate-100">
                                             <button
                                                 onClick={() => openEditModal(agency)}
-                                                className="flex-1 flex items-center justify-center gap-2 bg-purple-100 hover:bg-purple-600 hover:text-white text-purple-700 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                                                className="flex-1 flex items-center justify-center gap-2 bg-blue-100 hover:bg-[#002AD7] hover:text-white text-blue-700 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
                                             >
                                                 <Edit2 size={14} /> Modifier
                                             </button>
@@ -307,13 +451,16 @@ export default function AgenciesManagement() {
                 {showAddModal && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
-                            <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-6 text-white sticky top-0">
+                            <div className="bg-gradient-to-r from-[#002AD7] to-[#0044ff] p-6 text-white sticky top-0">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-xl font-bold">➕ Nouvelle Agence</h2>
                                     <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition">
                                         <X size={20} />
                                     </button>
                                 </div>
+                                <p className="text-blue-200 text-sm mt-2">
+                                    💡 Des identifiants de connexion seront générés automatiquement
+                                </p>
                             </div>
                             <form onSubmit={handleAddAgency} className="p-6 space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
@@ -324,7 +471,7 @@ export default function AgenciesManagement() {
                                             required
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002AD7] outline-none"
                                             placeholder="AutoLux Cameroun"
                                         />
                                     </div>
@@ -335,7 +482,7 @@ export default function AgenciesManagement() {
                                             required
                                             value={formData.city}
                                             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002AD7] outline-none"
                                             placeholder="Douala"
                                         />
                                     </div>
@@ -345,7 +492,7 @@ export default function AgenciesManagement() {
                                             type="text"
                                             value={formData.location}
                                             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002AD7] outline-none"
                                             placeholder="Rue Joss, Bonanjo"
                                         />
                                     </div>
@@ -355,17 +502,17 @@ export default function AgenciesManagement() {
                                             type="tel"
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002AD7] outline-none"
                                             placeholder="+237 6XX XXX XXX"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">Email</label>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Email de contact</label>
                                         <input
                                             type="email"
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002AD7] outline-none"
                                             placeholder="contact@agence.cm"
                                         />
                                     </div>
@@ -375,19 +522,133 @@ export default function AgenciesManagement() {
                                             type="url"
                                             value={formData.website}
                                             onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#002AD7] outline-none"
                                             placeholder="https://www.agence.cm"
                                         />
                                     </div>
                                     <div className="col-span-2">
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">Horaires d'ouverture</label>
-                                        <input
-                                            type="text"
-                                            value={formData.openingHours}
-                                            onChange={(e) => setFormData({ ...formData, openingHours: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
-                                            placeholder="Lun-Sam 8h-18h"
-                                        />
+                                        <label className="block text-sm font-bold text-slate-700 mb-3">
+                                            <Clock className="inline-block mr-2" size={16} />
+                                            Horaires d'ouverture *
+                                        </label>
+
+                                        {/* Aperçu des horaires */}
+                                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
+                                            <p className="text-sm text-blue-800 font-medium">
+                                                📅 {formatOpeningHours()}
+                                            </p>
+                                        </div>
+
+                                        {/* Sélection par jour */}
+                                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                                            {DAYS.map((day) => (
+                                                <div
+                                                    key={day.key}
+                                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${openingSchedule[day.key]?.isOpen
+                                                        ? 'bg-white border-[#002AD7]/20'
+                                                        : 'bg-slate-50 border-slate-200'
+                                                        }`}
+                                                >
+                                                    {/* Toggle jour */}
+                                                    <label className="flex items-center gap-2 cursor-pointer min-w-[100px]">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={openingSchedule[day.key]?.isOpen || false}
+                                                            onChange={(e) => setOpeningSchedule(prev => ({
+                                                                ...prev,
+                                                                [day.key]: { ...prev[day.key], isOpen: e.target.checked }
+                                                            }))}
+                                                            className="w-4 h-4 rounded text-[#002AD7] focus:ring-[#002AD7]"
+                                                        />
+                                                        <span className={`font-semibold text-sm ${openingSchedule[day.key]?.isOpen ? 'text-slate-800' : 'text-slate-400'
+                                                            }`}>
+                                                            {day.full}
+                                                        </span>
+                                                    </label>
+
+                                                    {/* Horaires si ouvert */}
+                                                    {openingSchedule[day.key]?.isOpen && (
+                                                        <div className="flex items-center gap-2 flex-1">
+                                                            <input
+                                                                type="time"
+                                                                value={openingSchedule[day.key]?.openTime || '08:00'}
+                                                                onChange={(e) => setOpeningSchedule(prev => ({
+                                                                    ...prev,
+                                                                    [day.key]: { ...prev[day.key], openTime: e.target.value }
+                                                                }))}
+                                                                className="px-2 py-1 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#002AD7] outline-none"
+                                                            />
+                                                            <span className="text-slate-400">→</span>
+                                                            <input
+                                                                type="time"
+                                                                value={openingSchedule[day.key]?.closeTime || '18:00'}
+                                                                onChange={(e) => setOpeningSchedule(prev => ({
+                                                                    ...prev,
+                                                                    [day.key]: { ...prev[day.key], closeTime: e.target.value }
+                                                                }))}
+                                                                className="px-2 py-1 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#002AD7] outline-none"
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    {/* Badge fermé */}
+                                                    {!openingSchedule[day.key]?.isOpen && (
+                                                        <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+                                                            Fermé
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Boutons rapides */}
+                                        <div className="flex gap-2 mt-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setOpeningSchedule({
+                                                    lun: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    mar: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    mer: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    jeu: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    ven: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    sam: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    dim: { isOpen: false, openTime: '08:00', closeTime: '18:00' }
+                                                })}
+                                                className="flex-1 px-3 py-2 text-xs font-medium bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition"
+                                            >
+                                                Lun-Sam 8h-18h
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setOpeningSchedule({
+                                                    lun: { isOpen: true, openTime: '09:00', closeTime: '19:00' },
+                                                    mar: { isOpen: true, openTime: '09:00', closeTime: '19:00' },
+                                                    mer: { isOpen: true, openTime: '09:00', closeTime: '19:00' },
+                                                    jeu: { isOpen: true, openTime: '09:00', closeTime: '19:00' },
+                                                    ven: { isOpen: true, openTime: '09:00', closeTime: '19:00' },
+                                                    sam: { isOpen: true, openTime: '09:00', closeTime: '13:00' },
+                                                    dim: { isOpen: false, openTime: '09:00', closeTime: '19:00' }
+                                                })}
+                                                className="flex-1 px-3 py-2 text-xs font-medium bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition"
+                                            >
+                                                Lun-Ven 9h-19h
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setOpeningSchedule({
+                                                    lun: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    mar: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    mer: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    jeu: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    ven: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    sam: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    dim: { isOpen: true, openTime: '00:00', closeTime: '23:59' }
+                                                })}
+                                                className="flex-1 px-3 py-2 text-xs font-medium bg-[#002AD7]/10 text-[#002AD7] rounded-lg hover:bg-[#002AD7]/20 transition"
+                                            >
+                                                24h/24 7j/7
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="col-span-2">
                                         <label className="flex items-center gap-3 cursor-pointer">
@@ -395,7 +656,7 @@ export default function AgenciesManagement() {
                                                 type="checkbox"
                                                 checked={formData.open}
                                                 onChange={(e) => setFormData({ ...formData, open: e.target.checked })}
-                                                className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500"
+                                                className="w-5 h-5 rounded text-[#002AD7] focus:ring-[#002AD7]"
                                             />
                                             <span className="font-semibold text-slate-700">Agence actuellement ouverte</span>
                                         </label>
@@ -411,12 +672,73 @@ export default function AgenciesManagement() {
                                     </button>
                                     <button
                                         type="submit"
-                                        className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition"
+                                        disabled={isCreating}
+                                        className="flex-1 px-4 py-3 bg-gradient-to-r from-[#002AD7] to-[#0044ff] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition disabled:opacity-50"
                                     >
-                                        Créer l'agence
+                                        {isCreating ? "Création..." : "Créer l'agence"}
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL: Generated Credentials */}
+                {showCredentialsModal && generatedCredentials && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-in fade-in zoom-in duration-200">
+                            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 text-white rounded-t-3xl">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                                        <CheckCircle size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold">✅ Agence créée !</h2>
+                                        <p className="text-emerald-100 text-sm">{generatedCredentials.agencyName}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                                    <p className="text-amber-800 text-sm font-medium">
+                                        ⚠️ Important : Notez ces identifiants de connexion. Ils ne seront plus affichés !
+                                    </p>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="bg-slate-50 rounded-xl p-4">
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">EMAIL DE CONNEXION</label>
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-mono text-slate-800">{generatedCredentials.email}</span>
+                                            <button
+                                                onClick={() => copyToClipboard(generatedCredentials.email, 'email')}
+                                                className="p-2 hover:bg-slate-200 rounded-lg transition"
+                                            >
+                                                {copiedField === 'email' ? <CheckCircle size={18} className="text-emerald-500" /> : <Copy size={18} className="text-slate-400" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-50 rounded-xl p-4">
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">MOT DE PASSE</label>
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-mono text-slate-800">{generatedCredentials.password}</span>
+                                            <button
+                                                onClick={() => copyToClipboard(generatedCredentials.password, 'password')}
+                                                className="p-2 hover:bg-slate-200 rounded-lg transition"
+                                            >
+                                                {copiedField === 'password' ? <CheckCircle size={18} className="text-emerald-500" /> : <Copy size={18} className="text-slate-400" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => { setShowCredentialsModal(false); setGeneratedCredentials(null); }}
+                                    className="w-full px-4 py-3 bg-gradient-to-r from-[#002AD7] to-[#0044ff] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition"
+                                >
+                                    J'ai noté les identifiants
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -483,6 +805,118 @@ export default function AgenciesManagement() {
                                             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                                         />
                                     </div>
+
+                                    {/* Horaires d'ouverture structurés */}
+                                    <div className="col-span-2">
+                                        <label className="block text-sm font-bold text-slate-700 mb-3">
+                                            <Clock className="inline-block mr-2" size={16} />
+                                            Horaires d'ouverture
+                                        </label>
+
+                                        {/* Aperçu des horaires */}
+                                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
+                                            <p className="text-sm text-blue-800 font-medium">
+                                                📅 {formatOpeningHours()}
+                                            </p>
+                                        </div>
+
+                                        {/* Sélection par jour */}
+                                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                                            {DAYS.map((day) => (
+                                                <div
+                                                    key={day.key}
+                                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${openingSchedule[day.key]?.isOpen
+                                                            ? 'bg-white border-blue-200'
+                                                            : 'bg-slate-50 border-slate-200'
+                                                        }`}
+                                                >
+                                                    {/* Toggle jour */}
+                                                    <label className="flex items-center gap-2 cursor-pointer min-w-[100px]">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={openingSchedule[day.key]?.isOpen || false}
+                                                            onChange={(e) => setOpeningSchedule(prev => ({
+                                                                ...prev,
+                                                                [day.key]: { ...prev[day.key], isOpen: e.target.checked }
+                                                            }))}
+                                                            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                                                        />
+                                                        <span className={`font-semibold text-sm ${openingSchedule[day.key]?.isOpen ? 'text-slate-800' : 'text-slate-400'
+                                                            }`}>
+                                                            {day.full}
+                                                        </span>
+                                                    </label>
+
+                                                    {/* Horaires si ouvert */}
+                                                    {openingSchedule[day.key]?.isOpen && (
+                                                        <div className="flex items-center gap-2 flex-1">
+                                                            <input
+                                                                type="time"
+                                                                value={openingSchedule[day.key]?.openTime || '08:00'}
+                                                                onChange={(e) => setOpeningSchedule(prev => ({
+                                                                    ...prev,
+                                                                    [day.key]: { ...prev[day.key], openTime: e.target.value }
+                                                                }))}
+                                                                className="px-2 py-1 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                                            />
+                                                            <span className="text-slate-400">→</span>
+                                                            <input
+                                                                type="time"
+                                                                value={openingSchedule[day.key]?.closeTime || '18:00'}
+                                                                onChange={(e) => setOpeningSchedule(prev => ({
+                                                                    ...prev,
+                                                                    [day.key]: { ...prev[day.key], closeTime: e.target.value }
+                                                                }))}
+                                                                className="px-2 py-1 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    {/* Badge fermé */}
+                                                    {!openingSchedule[day.key]?.isOpen && (
+                                                        <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+                                                            Fermé
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Boutons rapides */}
+                                        <div className="flex gap-2 mt-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setOpeningSchedule({
+                                                    lun: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    mar: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    mer: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    jeu: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    ven: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    sam: { isOpen: true, openTime: '08:00', closeTime: '18:00' },
+                                                    dim: { isOpen: false, openTime: '08:00', closeTime: '18:00' }
+                                                })}
+                                                className="flex-1 px-3 py-2 text-xs font-medium bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition"
+                                            >
+                                                Lun-Sam 8h-18h
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setOpeningSchedule({
+                                                    lun: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    mar: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    mer: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    jeu: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    ven: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    sam: { isOpen: true, openTime: '00:00', closeTime: '23:59' },
+                                                    dim: { isOpen: true, openTime: '00:00', closeTime: '23:59' }
+                                                })}
+                                                className="flex-1 px-3 py-2 text-xs font-medium bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition"
+                                            >
+                                                24h/24 7j/7
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <div className="col-span-2">
                                         <label className="flex items-center gap-3 cursor-pointer">
                                             <input
