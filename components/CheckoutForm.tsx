@@ -3,6 +3,7 @@ import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CreditCard, Smartphone, CheckCircle, AlertCircle } from "lucide-react";
 import { bookingService, isMockMode } from "@/services/api";
+import { isStripeDemoMode } from "@/lib/stripe";
 
 interface CheckoutFormProps {
     amount: number;
@@ -52,8 +53,8 @@ export default function CheckoutForm({ amount }: CheckoutFormProps) {
 
         try {
             if (paymentMethod === 'CARD') {
-                // MODE MOCK: Simuler le paiement
-                if (isMockMode()) {
+                // MODE MOCK ou DEMO STRIPE: Simuler le paiement
+                if (isMockMode() || isStripeDemoMode) {
                     console.log("🎭 Mode démo: Simulation du paiement par carte");
                     await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -156,7 +157,14 @@ export default function CheckoutForm({ amount }: CheckoutFormProps) {
                     <div className="space-y-4">
                         <label className="block text-sm font-medium text-gray-700">Informations de la carte</label>
                         <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <CardElement options={{ style: { base: { fontSize: '16px' } } }} />
+                            {isStripeDemoMode ? (
+                                <div className="p-3 bg-blue-50 text-blue-700 text-sm rounded font-medium flex items-center gap-2">
+                                    <CreditCard size={16} />
+                                    Mode Démo : Paiement par carte simulé (pas de débit)
+                                </div>
+                            ) : (
+                                <CardElement options={{ style: { base: { fontSize: '16px' } } }} />
+                            )}
                         </div>
                     </div>
                 ) : (
@@ -203,7 +211,7 @@ export default function CheckoutForm({ amount }: CheckoutFormProps) {
 
             <button
                 type="submit"
-                disabled={(paymentMethod === 'CARD' && !stripe) || loading || !!successMessage}
+                disabled={(paymentMethod === 'CARD' && !stripe && !isStripeDemoMode) || loading || !!successMessage}
                 className={`w-full font-bold py-4 px-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-white
                     ${paymentMethod === 'CARD' ? 'bg-blue-600 hover:bg-blue-700' : ''}
                     ${paymentMethod === 'MTN' ? 'bg-yellow-400 text-yellow-900 hover:bg-yellow-500' : ''}

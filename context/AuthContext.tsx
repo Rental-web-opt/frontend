@@ -15,7 +15,8 @@ interface AuthContextType {
   user: User | null;
   login: (userData: any) => void;
   logout: () => void;
-  protect: (redirectUrl: string) => void; // <--- AJOUT DE LA FONCTION PROTECT
+  protect: (redirectUrl: string) => void;
+  updateUser: (userData: Partial<User>) => void;
   isLoading: boolean;
 }
 
@@ -65,6 +66,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push("/Login");
   };
 
+  // Mise à jour partielle du profil utilisateur
+  const updateUser = (userData: Partial<User>) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...userData };
+      localStorage.setItem("user", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   // --- NOUVELLE FONCTION PROTECT ---
   const protect = (redirectUrl: string) => {
     if (!user) {
@@ -77,7 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, protect, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, protect, updateUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

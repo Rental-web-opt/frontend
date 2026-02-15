@@ -61,6 +61,7 @@ export default function NotificationBell() {
                                     <div className="flex items-start gap-3">
                                         <div className="mt-1">{getIcon(notif.type)}</div>
                                         <div className="flex-1">
+                                            {notif.title && <p className="text-sm font-bold text-slate-800 mb-0.5">{notif.title}</p>}
                                             <p className="text-sm text-slate-700">{notif.message}</p>
                                             <p className="text-xs text-slate-400 mt-1">
                                                 {notif.timestamp.toLocaleTimeString()}

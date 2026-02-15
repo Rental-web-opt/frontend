@@ -3,7 +3,7 @@
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Elements } from "@stripe/react-stripe-js";
-import { stripePromise } from "@/lib/stripe";
+import { stripePromise, isStripeDemoMode } from "@/lib/stripe";
 import CheckoutForm from "@/components/CheckoutForm";
 import { ArrowLeft, Shield, Lock } from "lucide-react";
 import Link from "next/link";
@@ -32,7 +32,9 @@ function CheckoutContent() {
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-slate-800">Paiement Sécurisé</h1>
-                            <p className="text-sm text-slate-500">Transaction cryptée et protégée</p>
+                            <p className="text-sm text-slate-500">
+                                {isStripeDemoMode ? "Mode démo - Paiement simulé" : "Transaction cryptée et protégée"}
+                            </p>
                         </div>
                     </div>
 
@@ -48,6 +50,7 @@ function CheckoutContent() {
                         )}
                     </div>
 
+                    {/* Formulaire de paiement */}
                     <Elements stripe={stripePromise}>
                         <CheckoutForm amount={totalAmount} />
                     </Elements>

@@ -49,7 +49,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* CARTE CHAUFFEUR */}
             <div
-              onClick={() => protect("/Dashboard/Upgrade/Driver")}
+              onClick={() => protect("/Partner?type=driver")}
               className="bg-white rounded-[2.5rem] p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group text-center border border-slate-100"
             >
               <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:bg-[#002AD7] transition-colors duration-300">
@@ -66,7 +66,7 @@ export default function HomePage() {
 
             {/* CARTE AGENCE */}
             <div
-              onClick={() => protect("/Dashboard/Upgrade/Agency")}
+              onClick={() => protect("/Partner?type=agency")}
               className="bg-white rounded-[2.5rem] p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group text-center border border-slate-100"
             >
               <div className="w-20 h-20 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:bg-[#F76513] transition-colors duration-300">

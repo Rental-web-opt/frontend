@@ -180,6 +180,20 @@ export const carService = {
     }
     return api.get(`/cars/agency/${agencyId}`);
   },
+  update: async (id: number, data: any) => {
+    if (USE_MOCK_DATA) {
+      await delay(500);
+      return mockResponse({ id, ...data });
+    }
+    return api.put(`/cars/${id}`, data);
+  },
+  delete: async (id: number) => {
+    if (USE_MOCK_DATA) {
+      await delay(300);
+      return mockResponse({ success: true });
+    }
+    return api.delete(`/cars/${id}`);
+  },
 };
 
 // ============================================
@@ -239,6 +253,14 @@ export const agencyService = {
     }
     return api.get(`/agencies/${id}`);
   },
+  getByUserId: async (userId: number) => {
+    if (USE_MOCK_DATA) {
+      await delay(200);
+      const agency = mockAgencies.find(a => a.id === userId); // Pour le mock, on simplifie
+      return mockResponse(agency || null);
+    }
+    return api.get(`/agencies/user/${userId}`);
+  },
   create: async (data: any) => {
     if (USE_MOCK_DATA) {
       await delay(500);
@@ -258,6 +280,20 @@ export const agencyService = {
       return mockResponse({ success: true });
     }
     return api.delete(`/admin/agencies/${id}`);
+  },
+  getRevenue: async (agencyId: number) => {
+    if (USE_MOCK_DATA) {
+      await delay(200);
+      return mockResponse({ revenue: 0, totalBookings: 0, completedBookings: 0 });
+    }
+    return api.get(`/agencies/${agencyId}/revenue`);
+  },
+  getRevenueByUser: async (userId: number) => {
+    if (USE_MOCK_DATA) {
+      await delay(200);
+      return mockResponse({ revenue: 0, totalBookings: 0, completedBookings: 0 });
+    }
+    return api.get(`/agencies/user/${userId}/revenue`);
   }
 };
 
@@ -320,6 +356,14 @@ export const bookingService = {
       return mockResponse(localBookings.filter(b => b.userId === userId));
     }
     return api.get(`/bookings/user/${userId}`);
+  },
+
+  getByAgency: async (agencyId: number) => {
+    if (USE_MOCK_DATA) {
+      await delay(300);
+      return mockResponse(localBookings); // Mock simplifié
+    }
+    return api.get(`/bookings/agency/${agencyId}`);
   },
 
   getAll: async () => {
@@ -692,6 +736,22 @@ export const userService = {
     }
     return api.post('/auth/register', data);
   },
+
+  updateProfile: async (id: number, data: { fullName?: string; email?: string }) => {
+    if (USE_MOCK_DATA) {
+      await delay(500);
+      return mockResponse({ id, ...data });
+    }
+    return api.put(`/users/${id}`, data);
+  },
+
+  changePassword: async (id: number, currentPassword: string, newPassword: string) => {
+    if (USE_MOCK_DATA) {
+      await delay(500);
+      return mockResponse({ message: 'Mot de passe modifié avec succès' });
+    }
+    return api.put(`/users/${id}/password`, { currentPassword, newPassword });
+  },
 };
 
 // ============================================
@@ -746,6 +806,13 @@ export const adminService = {
       return mockResponse(mockAdminStats.revenueByAgency);
     }
     return api.get('/admin/revenue-by-agency');
+  },
+  getRevenue: async () => {
+    if (USE_MOCK_DATA) {
+      await delay(200);
+      return mockResponse({ totalRevenue: 0 });
+    }
+    return api.get('/admin/stats');
   },
 };
 

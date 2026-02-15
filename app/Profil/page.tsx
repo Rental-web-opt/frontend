@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { bookingService, searchService } from "@/services/api";
+import { bookingService, searchService, userService } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { useNotification } from "@/context/NotificationContext"; // <-- Import
 import { useFavorite } from "@/context/FavoriteContext";
@@ -22,92 +22,141 @@ import {
 
 // --- SOUS-COMPOSANTS VUES ---
 
-// Modifié pour accepter l'objet 'user'
-const InformationView = ({ user }: { user: any }) => (
-    <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="h-32 bg-gradient-to-r from-blue-600 to-blue-500 w-full relative">
-            <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-2 rounded-full cursor-pointer hover:bg-white/30 transition">
-                <Edit2 className="text-white w-4 h-4" />
-            </div>
-        </div>
-        <div className="px-8 pb-8 relative">
-            <div className="flex flex-col md:flex-row justify-between items-end -mt-12 mb-10 gap-4">
-                <div className="flex items-end gap-6">
-                    <div className="relative">
-                        <div className="w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden bg-slate-100 flex items-center justify-center">
-                            {user?.fullName ? (
-                                <span className="text-4xl font-bold text-slate-300">{user.fullName.charAt(0)}</span>
-                            ) : (
-                                <Image src="/assets/default-avatar.jpeg" alt="Avatar" width={128} height={128} className="object-cover h-full w-full" />
-                            )}
-                        </div>
-                        <button className="absolute bottom-1 right-1 bg-blue-600 p-2 rounded-full border-2 border-white text-white hover:bg-blue-700 transition shadow-sm">
-                            <Edit2 size={14} />
-                        </button>
-                    </div>
-                    <div className="mb-3">
-                        <h2 className="text-2xl font-bold text-slate-800">{user?.fullName || "Utilisateur"}</h2>
-                        <p className="text-slate-500 text-sm">Rôle : {user?.role || "Membre"}</p>
-                    </div>
+// Modifié pour accepter l'objet 'user' et permettre la modification
+const InformationView = ({ user }: { user: any }) => {
+    const { updateUser } = useAuth();
+    const [fullName, setFullName] = useState(user?.fullName || "");
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+    useEffect(() => {
+        if (user?.fullName) setFullName(user.fullName);
+    }, [user?.fullName]);
+
+    const handleSave = async () => {
+        if (!user?.id) return;
+        if (!fullName.trim()) {
+            setMessage({ type: "error", text: "Le nom ne peut pas être vide" });
+            return;
+        }
+
+        setSaving(true);
+        setMessage(null);
+        try {
+            const res = await userService.updateProfile(user.id, { fullName: fullName.trim() });
+            // Mettre à jour le contexte Auth (navbar + localStorage)
+            updateUser({ fullName: res.data.fullName || fullName.trim() });
+            setMessage({ type: "success", text: "Profil mis à jour avec succès !" });
+        } catch (err: any) {
+            const msg = err.response?.data?.message || "Erreur lors de la sauvegarde";
+            setMessage({ type: "error", text: msg });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="h-32 bg-gradient-to-r from-blue-600 to-blue-500 w-full relative">
+                <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-2 rounded-full cursor-pointer hover:bg-white/30 transition">
+                    <Edit2 className="text-white w-4 h-4" />
                 </div>
-                <button className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-lg">
-                    Sauvegarder
-                </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">Informations Personnelles</h3>
-                    <div>
-                        <label className="block text-slate-600 text-sm font-medium mb-2">Nom Complet</label>
+            <div className="px-8 pb-8 relative">
+                <div className="flex flex-col md:flex-row justify-between items-end -mt-12 mb-10 gap-4">
+                    <div className="flex items-end gap-6">
                         <div className="relative">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                            <input type="text" defaultValue={user?.fullName || ""} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                            <div className="w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden bg-slate-100 flex items-center justify-center">
+                                {user?.fullName ? (
+                                    <span className="text-4xl font-bold text-slate-300">{user.fullName.charAt(0)}</span>
+                                ) : (
+                                    <Image src="/assets/default-avatar.jpeg" alt="Avatar" width={128} height={128} className="object-cover h-full w-full" />
+                                )}
+                            </div>
+                        </div>
+                        <div className="mb-3">
+                            <h2 className="text-2xl font-bold text-slate-800">{user?.fullName || "Utilisateur"}</h2>
+                            <p className="text-slate-500 text-sm">Rôle : {user?.role || "Membre"}</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {saving ? (
+                            <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Sauvegarde...</>
+                        ) : "Sauvegarder"}
+                    </button>
+                </div>
+
+                {/* Message de feedback */}
+                {message && (
+                    <div className={`mb-6 p-4 rounded-xl text-sm font-medium flex items-center gap-2 ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                        {message.type === 'success' ? '✅' : '❌'} {message.text}
+                    </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                        <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">Informations Personnelles</h3>
                         <div>
-                            <label className="block text-slate-600 text-sm font-medium mb-2">Genre</label>
+                            <label className="block text-slate-600 text-sm font-medium mb-2">Nom Complet</label>
                             <div className="relative">
-                                <select className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
-                                    <option>Homme</option>
-                                    <option>Femme</option>
-                                </select>
-                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-slate-600 text-sm font-medium mb-2">Genre</label>
+                                <div className="relative">
+                                    <select className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
+                                        <option>Homme</option>
+                                        <option>Femme</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-slate-600 text-sm font-medium mb-2">Langue</label>
+                                <div className="relative">
+                                    <select className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
+                                        <option>Français</option>
+                                        <option>Anglais</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="space-y-6">
+                        <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">Coordonnées</h3>
+                        <div>
+                            <label className="block text-slate-600 text-sm font-medium mb-2">Email</label>
+                            <div className="relative">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <input type="email" readOnly defaultValue={user?.email || ""} className="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-slate-500 outline-none cursor-not-allowed" />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-slate-600 text-sm font-medium mb-2">Langue</label>
+                            <label className="block text-slate-600 text-sm font-medium mb-2">Adresse</label>
                             <div className="relative">
-                                <select className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
-                                    <option>Français</option>
-                                    <option>Anglais</option>
-                                </select>
-                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+                                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <input type="text" defaultValue="Yaoundé, Cameroun" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">Coordonnées</h3>
-                    <div>
-                        <label className="block text-slate-600 text-sm font-medium mb-2">Email</label>
-                        <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                            <input type="email" readOnly defaultValue={user?.email || ""} className="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-slate-500 outline-none cursor-not-allowed" />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-slate-600 text-sm font-medium mb-2">Adresse</label>
-                        <div className="relative">
-                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                            <input type="text" defaultValue="Yaoundé, Cameroun" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 // Modifié pour afficher les favoris réels du contexte
 const FavoriteView = () => {
@@ -186,7 +235,14 @@ const FavoriteView = () => {
 }
 
 const NotificationsView = () => {
-    const { notifications, markAllAsRead, clearNotification } = useNotification();
+    const { notifications, markAllAsRead, clearNotification, unreadCount } = useNotification();
+
+    // Marquer automatiquement toutes les notifications comme lues quand on entre dans l'onglet
+    useEffect(() => {
+        if (unreadCount > 0) {
+            markAllAsRead();
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 min-h-[600px]">
@@ -208,15 +264,17 @@ const NotificationsView = () => {
                         <div key={notif.id} className={`flex items-start gap-4 p-4 rounded-2xl transition-colors border group ${notif.read ? 'bg-white border-transparent hover:bg-slate-50' : 'bg-blue-50/40 border-blue-100'}`}>
                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 
                                 ${notif.type === 'success' ? 'bg-green-100 text-green-600' : ''} 
+                                ${notif.type === 'payment' ? 'bg-emerald-100 text-emerald-600' : ''} 
                                 ${notif.type === 'error' ? 'bg-red-100 text-red-600' : ''} 
                                 ${notif.type === 'booking' ? 'bg-purple-100 text-purple-600' : ''} 
                                 ${notif.type === 'info' ? 'bg-blue-100 text-blue-600' : ''}
+                                ${notif.type === 'promo' ? 'bg-orange-100 text-orange-600' : ''}
                             `}>
                                 <Bell className="w-6 h-6" />
                             </div>
                             <div className="flex-1">
                                 <div className="flex justify-between items-start mb-1">
-                                    <h3 className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors capitalize">{notif.type}</h3>
+                                    <h3 className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{notif.title || notif.type}</h3>
                                     <span className="text-xs text-slate-400 font-medium">{notif.timestamp.toLocaleTimeString()}</span>
                                 </div>
                                 <p className="text-slate-600 text-sm leading-relaxed">{notif.message}</p>
@@ -565,26 +623,98 @@ const LanguageForm = ({ onBack }: any) => (
     </div>
 );
 
-const PasswordForm = ({ onBack }: any) => (
-    <div className="max-w-2xl">
-        <SettingsHeader title="Modifier le mot de passe" onBack={onBack} />
-        <div className="bg-white p-8 rounded-3xl border border-slate-100 space-y-6">
-            <div>
-                <label className="block text-slate-700 font-medium mb-2">Mot de passe actuel</label>
-                <input type="password" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800" />
+const PasswordForm = ({ onBack }: any) => {
+    const { user } = useAuth();
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+    const handleSubmit = async () => {
+        setMessage(null);
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            setMessage({ type: "error", text: "Veuillez remplir tous les champs" });
+            return;
+        }
+        if (newPassword.length < 4) {
+            setMessage({ type: "error", text: "Le nouveau mot de passe doit contenir au moins 4 caractères" });
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setMessage({ type: "error", text: "Les mots de passe ne correspondent pas" });
+            return;
+        }
+        if (!user?.id) return;
+
+        setSaving(true);
+        try {
+            await userService.changePassword(user.id, currentPassword, newPassword);
+            setMessage({ type: "success", text: "Mot de passe modifié avec succès !" });
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+        } catch (err: any) {
+            const msg = err.response?.data?.message || "Erreur lors du changement de mot de passe";
+            setMessage({ type: "error", text: msg });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="max-w-2xl">
+            <SettingsHeader title="Modifier le mot de passe" onBack={onBack} />
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 space-y-6">
+                {message && (
+                    <div className={`p-4 rounded-xl text-sm font-medium flex items-center gap-2 ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                        {message.type === 'success' ? '✅' : '❌'} {message.text}
+                    </div>
+                )}
+                <div>
+                    <label className="block text-slate-700 font-medium mb-2">Mot de passe actuel</label>
+                    <input
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="Entrez votre mot de passe actuel"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800"
+                    />
+                </div>
+                <div>
+                    <label className="block text-slate-700 font-medium mb-2">Nouveau mot de passe</label>
+                    <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Minimum 4 caractères"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800"
+                    />
+                </div>
+                <div>
+                    <label className="block text-slate-700 font-medium mb-2">Confirmer le mot de passe</label>
+                    <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Répétez le nouveau mot de passe"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800"
+                    />
+                </div>
+                <button
+                    onClick={handleSubmit}
+                    disabled={saving}
+                    className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                    {saving ? (
+                        <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Modification...</>
+                    ) : "Mettre à jour"}
+                </button>
             </div>
-            <div>
-                <label className="block text-slate-700 font-medium mb-2">Nouveau mot de passe</label>
-                <input type="password" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800" />
-            </div>
-            <div>
-                <label className="block text-slate-700 font-medium mb-2">Confirmer le mot de passe</label>
-                <input type="password" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800" />
-            </div>
-            <button className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">Mettre à jour</button>
         </div>
-    </div>
-);
+    );
+};
 
 const NotificationsForm = ({ onBack }: any) => (
     <div className="max-w-2xl">
